@@ -120,7 +120,9 @@ def fetch_one(doc: dict[str, Any], pin: bool) -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--pin", action="store_true", help="write sha256 for unpinned entries")
     args = parser.parse_args()
 
@@ -144,7 +146,9 @@ def main() -> int:
         print(f"updated {MANIFEST.relative_to(REPO_ROOT)}")
 
     total_mb = sum(p.stat().st_size for p in CORPUS_DIR.glob("*.pdf")) / 1_000_000
-    print(f"done in {time.perf_counter() - started:.0f}s, {total_mb:.0f} MB on disk, {len(failures)} failed")
+    print(
+        f"done in {time.perf_counter() - started:.0f}s, {total_mb:.0f} MB on disk, {len(failures)} failed"
+    )
     return 1 if failures else 0
 
 

@@ -14,3 +14,9 @@ api = { workspace = true }
 
 [tool.uv.workspace]
 members = ["services/api"]
+
+# scripts/ and evals/ follow the same style as services/api (which has its own,
+# stricter lint config).
+[tool.ruff]
+line-length = 100
+target-version = "py312"

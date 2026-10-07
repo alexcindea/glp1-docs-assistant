@@ -1,0 +1,47 @@
+# Install once: `uvx pre-commit install`. Run on everything: `uvx pre-commit run --all-files`.
+# Type-checking and tests are too slow for every commit; CI runs them.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^apps/web/tsconfig\.json$ # JSONC (comments allowed)
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500] # PDFs belong in corpus/, which is never committed
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: no-env-files
+        name: never commit .env files (secrets)
+        language: fail
+        entry: ".env files hold secrets; only .env.example may be committed"
+        files: (^|/)\.env(\.(?!example$)[^/]*)?$
+
+      - id: web-format
+        name: prettier (apps/web)
+        language: system
+        entry: pnpm --dir apps/web format
+        files: ^apps/web/
+        pass_filenames: false
+
+      - id: web-lint
+        name: eslint (apps/web)
+        language: system
+        entry: pnpm --dir apps/web lint
+        files: ^apps/web/.*\.(ts|tsx|js|jsx|mjs)$
+        pass_filenames: false
