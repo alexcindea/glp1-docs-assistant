@@ -11,10 +11,14 @@ from typing import Literal
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
 from sqlalchemy import bindparam, text
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.db import REQUIRED_EXTENSIONS, current_revision
+from app.db import (
+    DATABASE_ERRORS,
+    REQUIRED_EXTENSIONS,
+    current_revision,
+    database_error_name,
+)
 from app.state import AppStateDep
 
 router = APIRouter(prefix="/health", tags=["health"])
@@ -99,13 +103,12 @@ async def _check_database(engine: AsyncEngine, expected: str | None) -> Database
                 f"Cannot reach Postgres at {where}. Start it with `docker compose up -d db`."
             ],
         )
-    except SQLAlchemyError as exc:
-        cause = exc.orig if isinstance(exc, DBAPIError) else exc
+    except DATABASE_ERRORS as exc:
         return DatabaseStatus(
             reachable=False,
             expected_revision=expected,
             problems=[
-                f"Postgres at {where} returned an error ({type(cause).__name__}). "
+                f"Postgres at {where} returned an error ({database_error_name(exc)}). "
                 "Check DATABASE_URL and the credentials in .env."
             ],
         )

@@ -64,3 +64,18 @@ def test_not_ready_when_database_is_unreachable() -> None:
     assert database["reachable"] is False
     assert "docker compose up -d db" in database["problems"][0]
     assert "s3cret-password" not in response.text
+
+
+def test_not_ready_when_postgres_rejects_the_connection(
+    rejected_database_url: tuple[str, str],
+) -> None:
+    url, error = rejected_database_url
+
+    with make_client(url) as client:
+        response = client.get("/health/ready")
+
+    assert response.status_code == 503
+    (problem,) = response.json()["database"]["problems"]
+    assert error in problem
+    assert "credentials" in problem
+    assert "wrong-password" not in response.text

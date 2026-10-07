@@ -15,11 +15,10 @@ from types import FrameType
 
 import structlog
 from sqlalchemy import text
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.config import Settings, get_settings
-from app.db import create_engine
+from app.db import DATABASE_ERRORS, create_engine, database_error_name
 from app.observability import configure_logging
 
 logger = structlog.get_logger("app.worker")  # not __main__ under `python -m`
@@ -32,11 +31,8 @@ async def check_database(engine: AsyncEngine) -> str | None:
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-    except OSError as exc:
-        return type(exc).__name__
-    except SQLAlchemyError as exc:
-        cause = exc.orig if isinstance(exc, DBAPIError) else exc
-        return type(cause).__name__
+    except DATABASE_ERRORS as exc:
+        return database_error_name(exc)
     return None
 
 

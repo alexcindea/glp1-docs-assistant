@@ -2,15 +2,34 @@
 
 from pathlib import Path
 
+import asyncpg
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Connection, MetaData
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import Settings
 
 MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
+
+# Everything a failed database call can raise: network errors (OSError), errors
+# SQLAlchemy wraps, and asyncpg's own errors raised while connecting (wrong
+# password, unknown database), which SQLAlchemy does not wrap.
+DATABASE_ERRORS: tuple[type[Exception], ...] = (
+    OSError,
+    SQLAlchemyError,
+    asyncpg.PostgresError,
+    asyncpg.InterfaceError,
+)
+
+
+def database_error_name(exc: Exception) -> str:
+    """The underlying driver error's class name, e.g. InvalidPasswordError. No secrets."""
+    cause = exc.orig if isinstance(exc, DBAPIError) else exc
+    return type(cause).__name__
+
 
 # Extensions the app cannot run without; the first migration creates them.
 REQUIRED_EXTENSIONS = ("vector", "pg_textsearch")

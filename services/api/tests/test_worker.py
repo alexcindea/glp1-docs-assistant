@@ -56,3 +56,16 @@ async def test_worker_keeps_polling_while_the_database_is_unreachable() -> None:
     await _run_until(settings, poll, polls=2)
 
     assert all(result is not None for result in poll.results)
+
+
+@pytest.mark.anyio
+async def test_worker_reports_rejected_connections_and_keeps_polling(
+    rejected_database_url: tuple[str, str],
+) -> None:
+    url, error = rejected_database_url
+    poll = CountingPoll()
+    settings = Settings(database_url=url, worker_poll_interval_seconds=0.05)
+
+    await _run_until(settings, poll, polls=2)
+
+    assert poll.results[:2] == [error, error]

@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from sqlalchemy.engine import make_url
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.image import DockerImage
 from testcontainers.core.wait_strategies import ExecWaitStrategy
@@ -21,7 +22,7 @@ from app.config import Settings
 API_DIR = Path(__file__).resolve().parent.parent
 DB_IMAGE_DIR = API_DIR.parent / "db"
 DB_USER = "test"
-DB_PASSWORD = "test"  # noqa: S105 - throwaway container
+DB_PASSWORD = "test"  # throwaway container
 
 
 @pytest.fixture
@@ -66,6 +67,17 @@ def database_url(pg_container: DockerContainer) -> str:
     host = pg_container.get_container_host_ip()
     port = pg_container.get_exposed_port(5432)
     return f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{host}:{port}/{name}"
+
+
+@pytest.fixture(params=["wrong_password", "unknown_database"])
+def rejected_database_url(request: pytest.FixtureRequest, database_url: str) -> tuple[str, str]:
+    """A URL the running Postgres refuses, and the driver error it should be reported as."""
+    url = make_url(database_url)
+    if request.param == "wrong_password":
+        url, error = url.set(password="wrong-password"), "InvalidPasswordError"
+    else:
+        url, error = url.set(database="no_such_database"), "InvalidCatalogNameError"
+    return url.render_as_string(hide_password=False), error
 
 
 def alembic_config(url: str) -> Config:
