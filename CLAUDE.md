@@ -75,14 +75,28 @@ worker and web app run natively. Therefore:
 Fill in as the skeleton lands; keep this section accurate.
 
 ```powershell
+# setup (once)
 uv run scripts/fetch_corpus.py           # download demo corpus into corpus/ (--pin for new entries)
-docker compose up -d db phoenix          # local infra
-cd services/api; uv run fastapi dev      # API
+uv sync --all-packages                   # Python deps; plain `uv sync` drops the API's dev tools
+cd apps/web; pnpm install
+uvx pre-commit install                   # git hooks
+
+# develop: infra in Docker, app native
+docker compose up -d db phoenix          # Postgres 127.0.0.1:5432, Phoenix UI http://127.0.0.1:6006
+cd services/api; uv run alembic upgrade head
+cd services/api; uv run fastapi dev      # API http://127.0.0.1:8000 (/health/ready)
 cd services/api; uv run python -m app.worker
-cd apps/web; pnpm dev                     # frontend
-cd services/api; uv run pytest
+cd apps/web; pnpm dev                     # frontend http://localhost:3000 (/health)
+cd apps/web; pnpm gen:api                 # regenerate API types after changing API models
+
+# full stack in containers (no .env or API key needed)
+docker compose up --build
+
+# checks
+cd services/api; uv run pytest            # needs Docker running
 cd services/api; uv run ruff check .; uv run mypy .
 cd apps/web; pnpm lint; pnpm typecheck; pnpm test
+uvx pre-commit run --all-files
 uv run python evals/run.py               # eval suite
 ```
 
