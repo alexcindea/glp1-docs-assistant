@@ -75,6 +75,7 @@ worker and web app run natively. Therefore:
 Fill in as the skeleton lands; keep this section accurate.
 
 ```powershell
+uv run scripts/fetch_corpus.py           # download demo corpus into corpus/ (--pin for new entries)
 docker compose up -d db phoenix          # local infra
 cd services/api; uv run fastapi dev      # API
 cd services/api; uv run python -m app.worker

@@ -1,0 +1,190 @@
+{
+  "name": "GLP-1 dossier",
+  "description": "Public FDA and EMA documents on the GLP-1 receptor agonist family, 2005 to today.",
+  "sources": {
+    "FDA": "Drugs@FDA (accessdata.fda.gov). US government works, public domain.",
+    "EMA": "European public assessment reports (ema.europa.eu). Reuse permitted with the source acknowledged."
+  },
+  "documents": [
+    {
+      "id": "fda-byetta-label-2005",
+      "agency": "FDA",
+      "product": "Byetta",
+      "substance": "exenatide",
+      "doc_type": "label",
+      "year": 2005,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/021773lbl.pdf",
+      "sha256": "06f83a72067180405f246bcc7570be6f17ae9f3ae484f7b8189b88973d585116"
+    },
+    {
+      "id": "fda-byetta-approval-letter-2005",
+      "agency": "FDA",
+      "product": "Byetta",
+      "substance": "exenatide",
+      "doc_type": "approval_letter",
+      "year": 2005,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/021773ltr.pdf",
+      "sha256": "971cee7427278f26319a1394c8280231f6fe2c6631cc2358ee6ea79c38746cc0"
+    },
+    {
+      "id": "fda-byetta-medical-review-2005",
+      "agency": "FDA",
+      "product": "Byetta",
+      "substance": "exenatide",
+      "doc_type": "medical_review",
+      "year": 2005,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2005/021773_Byetta_MedR.pdf",
+      "sha256": "087bbc5a9d519f2c8747b7a56e8c6a8b78307337ce60a02ac0506e8cedcc421f"
+    },
+    {
+      "id": "fda-byetta-label-2025",
+      "agency": "FDA",
+      "product": "Byetta",
+      "substance": "exenatide",
+      "doc_type": "label",
+      "year": 2025,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/021773Orig1s051correctedlbl.pdf",
+      "sha256": "370f623ae3c772ef94cff4e53df9534df7a1cc011549129c7d90dd93dd16cc3f"
+    },
+    {
+      "id": "fda-victoza-summary-review-2010",
+      "agency": "FDA",
+      "product": "Victoza",
+      "substance": "liraglutide",
+      "doc_type": "summary_review",
+      "year": 2010,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2010/022341s000sumr.pdf",
+      "sha256": "0e8049368ae52a65758e14b23abcd3a6adbe15753c8c0a1450fb96bbecb9bc52"
+    },
+    {
+      "id": "fda-trulicity-summary-review-2014",
+      "agency": "FDA",
+      "product": "Trulicity",
+      "substance": "dulaglutide",
+      "doc_type": "summary_review",
+      "year": 2014,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2014/125469Orig1s000SumR.pdf",
+      "sha256": "282ea41bc16c04478f95734f24912d923d9939c569bdf93b82dc685879325ea7"
+    },
+    {
+      "id": "fda-ozempic-summary-review-2017",
+      "agency": "FDA",
+      "product": "Ozempic",
+      "substance": "semaglutide",
+      "doc_type": "summary_review",
+      "year": 2017,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2017/209637Orig1s000SumR.pdf",
+      "sha256": "1ff99ac9b8654d84d90b3be4cd979c7379e69728438c4fdb854ba26804c3387b"
+    },
+    {
+      "id": "fda-ozempic-label-2026",
+      "agency": "FDA",
+      "product": "Ozempic",
+      "substance": "semaglutide",
+      "doc_type": "label",
+      "year": 2026,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/209637Orig1s039lbl.pdf",
+      "sha256": "5ca20eae9bc0b18fdb70fc48b0c174c44e64e8e8edd1c7386354b564b7edcdf7"
+    },
+    {
+      "id": "fda-wegovy-summary-review-2021",
+      "agency": "FDA",
+      "product": "Wegovy",
+      "substance": "semaglutide",
+      "doc_type": "summary_review",
+      "year": 2021,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2021/215256Orig1s000SumR.pdf",
+      "sha256": "ad028bb5fa679e9e5ba606ce4bd633c19a72f3754ae7711942d8373397f0f1a4"
+    },
+    {
+      "id": "fda-mounjaro-summary-review-2022",
+      "agency": "FDA",
+      "product": "Mounjaro",
+      "substance": "tirzepatide",
+      "doc_type": "summary_review",
+      "year": 2022,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2022/215866Orig1s000SumR.pdf",
+      "sha256": "0d95c4385c285cda5e78a39d1fa7e5c26ebc5dcadb158233e0cdc8d924c64132"
+    },
+    {
+      "id": "fda-mounjaro-label-2026",
+      "agency": "FDA",
+      "product": "Mounjaro",
+      "substance": "tirzepatide",
+      "doc_type": "label",
+      "year": 2026,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215866Orig1s052lbl.pdf",
+      "sha256": "d124868a55019716bc060843f5d434a5ac825b2b867c3d4a6f6b666b67de14dd"
+    },
+    {
+      "id": "fda-zepbound-summary-review-2023",
+      "agency": "FDA",
+      "product": "Zepbound",
+      "substance": "tirzepatide",
+      "doc_type": "summary_review",
+      "year": 2023,
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/nda/2024/217806Orig1s000SumR.pdf",
+      "sha256": "0bf886a4acf6c57ef4cae02063f794f99b634f0b36f012695c5bb679a8945a37"
+    },
+    {
+      "id": "ema-byetta-scientific-discussion-2006",
+      "agency": "EMA",
+      "product": "Byetta",
+      "substance": "exenatide",
+      "doc_type": "assessment_report",
+      "year": 2006,
+      "url": "https://www.ema.europa.eu/en/documents/scientific-discussion/byetta-epar-scientific-discussion_en.pdf",
+      "sha256": "f701087671762125c86b7a226652c60a228dac16988c7da295e8781e8a644358"
+    },
+    {
+      "id": "ema-victoza-assessment-report-2009",
+      "agency": "EMA",
+      "product": "Victoza",
+      "substance": "liraglutide",
+      "doc_type": "assessment_report",
+      "year": 2009,
+      "url": "https://www.ema.europa.eu/en/documents/assessment-report/victoza-epar-public-assessment-report_en.pdf",
+      "sha256": "01a412962ef84474a5a1d4cf9d70469df0631e50762f49318177beb7a8a9922b"
+    },
+    {
+      "id": "ema-ozempic-assessment-report-2018",
+      "agency": "EMA",
+      "product": "Ozempic",
+      "substance": "semaglutide",
+      "doc_type": "assessment_report",
+      "year": 2018,
+      "url": "https://www.ema.europa.eu/en/documents/assessment-report/ozempic-epar-public-assessment-report_en.pdf",
+      "sha256": "71a57c0097238e05c51a99f58ace2036ea8d91ff70356300bc41573892a60a84"
+    },
+    {
+      "id": "ema-wegovy-assessment-report-2022",
+      "agency": "EMA",
+      "product": "Wegovy",
+      "substance": "semaglutide",
+      "doc_type": "assessment_report",
+      "year": 2022,
+      "url": "https://www.ema.europa.eu/en/documents/assessment-report/wegovy-epar-public-assessment-report_en.pdf",
+      "sha256": "c0e601d2e6c696dee12076138226ecde09184105c1fd6c9a2a013d84a8032618"
+    },
+    {
+      "id": "ema-mounjaro-assessment-report-2022",
+      "agency": "EMA",
+      "product": "Mounjaro",
+      "substance": "tirzepatide",
+      "doc_type": "assessment_report",
+      "year": 2022,
+      "url": "https://www.ema.europa.eu/en/documents/assessment-report/mounjaro-epar-public-assessment-report_en.pdf",
+      "sha256": "dec7c5c0d0692f96f66dff032922f375b9aecb73948c663c4df4bb5d80e10283"
+    },
+    {
+      "id": "ema-mounjaro-product-information",
+      "agency": "EMA",
+      "product": "Mounjaro",
+      "substance": "tirzepatide",
+      "doc_type": "product_information",
+      "year": null,
+      "url": "https://www.ema.europa.eu/en/documents/product-information/mounjaro-epar-product-information_en.pdf",
+      "sha256": "8d75eff2f10bd886e04a9cae39b5a53d6eea8dc5f9d2d23738f4b6def2646875"
+    }
+  ]
+}
