@@ -1,0 +1,16 @@
+# Workspace root. Not a package: it exists so `uv run` from the repo root
+# (evals, scripts) can import the API code, and so there is one lockfile.
+[project]
+name = "docs-assistant"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = ["api"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+api = { workspace = true }
+
+[tool.uv.workspace]
+members = ["services/api"]
