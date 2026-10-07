@@ -8,6 +8,19 @@ $path = $hookInput.tool_input.file_path
 if (-not $path) { exit 0 }
 
 $root = $env:CLAUDE_PROJECT_DIR
+
+# Ruff matches per-file-ignores against the project path; a lowercase drive
+# letter ("c:\...") makes those globs silently miss, so normalise both paths.
+function Set-DriveUpper([string]$p) {
+    if ($p -match '^[a-z]:') { return $p.Substring(0, 1).ToUpper() + $p.Substring(1) }
+    return $p
+}
+$root = Set-DriveUpper $root
+$path = Set-DriveUpper $path
+
+# An activated conda/venv elsewhere makes uv print a warning on every run.
+$env:VIRTUAL_ENV = $null
+
 $normalized = $path -replace '\\', '/'
 
 # --- Python: services/api ---------------------------------------------------
