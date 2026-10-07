@@ -1,5 +1,22 @@
 name: docs-assistant
 
+# Full stack: `docker compose up --build` (no .env or API key needed: models are fakes).
+# Development: `docker compose up -d db phoenix`, then run the API, worker and web natively.
+# Every port is bound to 127.0.0.1: reachable from this machine only.
+
+x-api-image: &api-image
+  build:
+    context: .
+    dockerfile: services/api/Dockerfile
+  image: docs-assistant-api:local
+
+x-api-environment: &api-environment
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+  LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+  EMBEDDER: ${EMBEDDER:-fake}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  OTEL_TRACES_ENDPOINT: http://phoenix:6006/v1/traces
+
 services:
   db:
     build: ./services/db
@@ -9,7 +26,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
       POSTGRES_DB: ${POSTGRES_DB:-app}
     ports:
-      # 127.0.0.1: reachable from this machine only, never from the network.
       - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       # Postgres 18 images keep data under /var/lib/postgresql/18/docker.
@@ -28,6 +44,63 @@ services:
       - "127.0.0.1:${PHOENIX_PORT:-6006}:6006" # UI and OTLP over HTTP (/v1/traces)
     volumes:
       - phoenix-data:/mnt/data
+
+  migrate:
+    <<: *api-image
+    command: ["alembic", "upgrade", "head"]
+    environment: *api-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *api-image
+    environment: *api-environment
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      phoenix:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  worker:
+    <<: *api-image
+    command: ["python", "-m", "app.worker"]
+    environment: *api-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build: ./apps/web
+    image: docs-assistant-web:local
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 3s
+      timeout: 5s
+      retries: 20
 
 volumes:
   db-data:

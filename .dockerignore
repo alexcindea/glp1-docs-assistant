@@ -1,0 +1,16 @@
+# The repo root is the build context for the API image only (services/api/Dockerfile).
+# Allow-list what it needs; everything else (corpus PDFs, node_modules, .env) stays out.
+*
+!pyproject.toml
+!uv.lock
+!services/api/
+services/api/**/__pycache__/
+services/api/.pytest_cache/
+services/api/.mypy_cache/
+services/api/.ruff_cache/
+services/api/.venv/
+services/api/tests/
+services/api/Dockerfile
+# Secrets never enter an image, even if one lands inside an allowed folder.
+**/.env
+**/.env.*
