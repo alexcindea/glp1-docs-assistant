@@ -1,0 +1,34 @@
+name: docs-assistant
+
+services:
+  db:
+    build: ./services/db
+    image: docs-assistant-db:local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      # 127.0.0.1: reachable from this machine only, never from the network.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/18/docker.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  phoenix:
+    image: arizephoenix/phoenix:version-20.19.0
+    environment:
+      PHOENIX_WORKING_DIR: /mnt/data
+    ports:
+      - "127.0.0.1:${PHOENIX_PORT:-6006}:6006" # UI and OTLP over HTTP (/v1/traces)
+    volumes:
+      - phoenix-data:/mnt/data
+
+volumes:
+  db-data:
+  phoenix-data:
