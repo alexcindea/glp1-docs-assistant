@@ -7,9 +7,15 @@ dependencies = [
     "alembic>=1.16",
     "asyncpg>=0.30",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
+    "opentelemetry-instrumentation-sqlalchemy>=0.66b1",
+    "opentelemetry-sdk>=1.45.1",
     "pydantic>=2.11",
     "pydantic-settings>=2.10",
-    "sqlalchemy[asyncio]>=2.0.40",
+    # <2.1: opentelemetry-instrumentation-sqlalchemy 0.66b1 refuses 2.1 (no DB spans).
+    "sqlalchemy[asyncio]>=2.0.40,<2.1",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]

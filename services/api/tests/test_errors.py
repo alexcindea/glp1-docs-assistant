@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import Settings
-from app.main import create_app
+from app.factory import create_app
 
 UNREACHABLE_URL = "postgresql+asyncpg://app:app@127.0.0.1:1/app"
 

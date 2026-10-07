@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.db import migration_head
-from app.main import create_app
+from app.factory import create_app
 
 # Nothing listens on port 1, so connecting fails immediately.
 UNREACHABLE_URL = "postgresql+asyncpg://app:s3cret-password@127.0.0.1:1/app"
@@ -34,6 +34,11 @@ def test_ready_when_database_is_migrated(migrated_database_url: str) -> None:
     assert {e["name"]: bool(e["installed_version"]) for e in database["extensions"]} == {
         "vector": True,
         "pg_textsearch": True,
+    }
+    assert body["models"] == {
+        "llm_provider": "fake",
+        "embedder": "fake",
+        "embedding_dimensions": 384,
     }
 
 

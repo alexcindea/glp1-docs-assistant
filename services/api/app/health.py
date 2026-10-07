@@ -40,9 +40,16 @@ class DatabaseStatus(BaseModel):
     problems: list[str] = []
 
 
+class ModelsStatus(BaseModel):
+    llm_provider: str
+    embedder: str
+    embedding_dimensions: int
+
+
 class ReadinessReport(BaseModel):
     status: Literal["ready", "not_ready"]
     database: DatabaseStatus
+    models: ModelsStatus
 
 
 @router.get("")
@@ -59,7 +66,14 @@ async def readiness(state: AppStateDep, response: Response) -> ReadinessReport:
     ready = not database.problems
     if not ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    return ReadinessReport(status="ready" if ready else "not_ready", database=database)
+    models = ModelsStatus(
+        llm_provider=state.llm.name,
+        embedder=state.embedder.name,
+        embedding_dimensions=state.embedder.dimensions,
+    )
+    return ReadinessReport(
+        status="ready" if ready else "not_ready", database=database, models=models
+    )
 
 
 async def _check_database(engine: AsyncEngine, expected: str | None) -> DatabaseStatus:
@@ -75,7 +89,7 @@ async def _check_database(engine: AsyncEngine, expected: str | None) -> Database
                 ).bindparams(bindparam("names", expanding=True)),
                 {"names": list(REQUIRED_EXTENSIONS)},
             )
-            installed: dict[str, str] = dict(rows.all())
+            installed: dict[str, str] = {row.extname: row.extversion for row in rows}
             revision = await current_revision(conn)
     except OSError:
         return DatabaseStatus(

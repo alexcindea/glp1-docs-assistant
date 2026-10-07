@@ -16,6 +16,8 @@ from testcontainers.core.container import DockerContainer
 from testcontainers.core.image import DockerImage
 from testcontainers.core.wait_strategies import ExecWaitStrategy
 
+from app.config import Settings
+
 API_DIR = Path(__file__).resolve().parent.parent
 DB_IMAGE_DIR = API_DIR.parent / "db"
 DB_USER = "test"
@@ -25,6 +27,12 @@ DB_PASSWORD = "test"  # noqa: S105 - throwaway container
 @pytest.fixture
 def anyio_backend() -> str:
     return "asyncio"
+
+
+@pytest.fixture(autouse=True)
+def _ignore_dotenv(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Tests see code defaults plus what they set, never a developer's .env."""
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
