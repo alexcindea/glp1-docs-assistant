@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(uv sync*)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm typecheck*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm dev*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(docker compose ps*)",
+      "Bash(docker compose logs*)",
+      "Bash(docker compose up*)",
+      "PowerShell(uv run *)",
+      "PowerShell(uv sync*)",
+      "PowerShell(pnpm run *)",
+      "PowerShell(pnpm exec *)",
+      "PowerShell(git status*)",
+      "PowerShell(git diff*)",
+      "PowerShell(git log*)",
+      "PowerShell(docker compose ps*)",
+      "PowerShell(docker compose logs*)"
+    ],
+    "ask": [
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(uv add *)",
+      "Bash(pnpm add *)",
+      "Bash(docker compose down*)",
+      "PowerShell(git commit*)",
+      "PowerShell(git push*)",
+      "PowerShell(uv add *)",
+      "PowerShell(pnpm add *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(./evals/gold.jsonl)",
+      "Write(./evals/gold.jsonl)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf *)",
+      "PowerShell(git push --force*)",
+      "PowerShell(git reset --hard*)",
+      "PowerShell(Remove-Item * -Recurse*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-and-lint.ps1"
+            ],
+            "timeout": 60,
+            "statusMessage": "Formatting and linting"
+          }
+        ]
+      }
+    ]
+  }
+}

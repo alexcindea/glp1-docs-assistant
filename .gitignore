@@ -1,0 +1,27 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# corpus is downloaded by scripts/fetch_corpus.py, never committed
+corpus/
+
+# python
+__pycache__/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# node
+node_modules/
+.next/
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
