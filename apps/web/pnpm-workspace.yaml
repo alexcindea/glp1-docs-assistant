@@ -1,0 +1,7 @@
+ignoredBuiltDependencies:
+  - unrs-resolver
+
+overrides:
+  # Next's optional image optimiser bundles libvips (LGPL-3.0). We never use
+  # next/image optimisation (PDFs render through pdf.js), so keep it out.
+  sharp: "-"
