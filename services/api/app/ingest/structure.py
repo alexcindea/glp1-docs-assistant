@@ -7,19 +7,29 @@ capitals ("FULL PRESCRIBING INFORMATION"): regulatory documents use capitals for
 top-level headings, and without this rule they would nest under whatever
 numbered heading came before (often a table-of-contents line). Documents without
 numbering stay flat, which is still correct, just shallower.
+
+Docling sometimes labels a table's caption ("Table 1: Adverse Reactions ...") as
+a heading. Left alone it would open a section, file the notes under the table in
+it, and exist only as a section title rather than as citeable text. A heading
+that reads like a table caption and comes right before a table is treated as
+that table's caption.
 """
 
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.ingest.models import BBox, BlockKind, ParsedDocument
+from app.ingest.models import BBox, Block, BlockKind, ParsedDocument
 
 # Leading section number: "2", "2.4", "2.4.1.", "Section 3". The number must start
 # the heading and be followed by whitespace or the end.
 _SECTION_NUMBER = re.compile(r"^(?:section\s+)?(\d{1,2}(?:\.\d{1,2})*)\.?(?=\s|$)", re.IGNORECASE)
 # Runs of decoration FDA labels put around headings: "------ DOSAGE ------".
 _DECORATION = re.compile(r"[-_=~*•·]{2,}")
+# "Table 1:", "Table 2B.", "TABLE 14 -": the opening of a table caption.
+_TABLE_CAPTION = re.compile(
+    r"^table\s+[a-z]?\d+[a-z]?\s*[:.\-\N{EN DASH}\N{EM DASH}]", re.IGNORECASE
+)
 
 
 def clean_heading(text: str) -> str:
@@ -147,7 +157,12 @@ def with_sections(parsed: ParsedDocument) -> ParsedDocument:
     The parser calls this; re-chunking calls it again on the stored parse, so a
     change to the heading rules applies without parsing again.
     """
-    blocks = parsed.blocks
+    blocks = [
+        b.model_copy(update={"kind": BlockKind.CAPTION})
+        if _is_table_caption(parsed.blocks, i)
+        else b
+        for i, b in enumerate(parsed.blocks)
+    ]
     headings, paths = assign_sections(
         [b.kind in (BlockKind.HEADING, BlockKind.TITLE) for b in blocks],
         [b.text for b in blocks],
@@ -159,4 +174,15 @@ def with_sections(parsed: ParsedDocument) -> ParsedDocument:
                 for b, h, path in zip(blocks, headings, paths, strict=True)
             ]
         }
+    )
+
+
+def _is_table_caption(blocks: Sequence[Block], position: int) -> bool:
+    """A heading that reads like a table caption and is followed by a table."""
+    block = blocks[position]
+    return (
+        block.kind in (BlockKind.HEADING, BlockKind.TITLE)
+        and bool(_TABLE_CAPTION.match(block.text.strip()))
+        and position + 1 < len(blocks)
+        and blocks[position + 1].kind == BlockKind.TABLE
     )

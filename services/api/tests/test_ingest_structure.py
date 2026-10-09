@@ -214,3 +214,36 @@ def test_with_sections_recomputes_paths_on_a_stored_parse() -> None:
 
     assert [b.section_path for b in fresh.blocks] == [["1 Introduction"], ["1 Introduction"]]
     assert [b.heading_depth for b in fresh.blocks] == [1, None]
+
+
+def test_a_table_caption_labelled_as_a_heading_becomes_the_tables_caption() -> None:
+    def block(i: int, kind: BlockKind, text: str) -> Block:
+        box = BBox(x0=0.1, y0=0.1, x1=0.9, y1=0.2)
+        region = Region(page=1, bbox=box, char_start=0, char_end=len(text))
+        return Block(index=i, kind=kind, text=text, regions=[region], section_path=[])
+
+    parsed = ParsedDocument(
+        pages=[Page(number=1, width_pt=612, height_pt=792, has_text_layer=True)],
+        blocks=[
+            block(0, BlockKind.HEADING, "6.1 Clinical Trials Experience"),
+            block(1, BlockKind.HEADING, "Table 1: Adverse Reactions in Placebo-Controlled Trials"),
+            block(2, BlockKind.TABLE, "| Nausea | 4 | 18 |"),
+            block(3, BlockKind.PARAGRAPH, "Note: percentages reflect patients."),
+            block(4, BlockKind.HEADING, "Table 2: Not followed by a table"),
+        ],
+        parser="test",
+    )
+
+    fresh = with_sections(parsed)
+
+    assert [b.kind for b in fresh.blocks] == [
+        BlockKind.HEADING,
+        BlockKind.CAPTION,
+        BlockKind.TABLE,
+        BlockKind.PARAGRAPH,
+        BlockKind.HEADING,
+    ]
+    # The note stays in 6.1 instead of a section named after the table.
+    assert fresh.blocks[3].section_path == ["6.1 Clinical Trials Experience"]
+    assert fresh.blocks[1].text == parsed.blocks[1].text
+    assert fresh.blocks[1].regions == parsed.blocks[1].regions
