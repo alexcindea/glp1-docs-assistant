@@ -84,9 +84,11 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+# Real model calls cost money: only when asked for (`-m llm` replaces this filter).
+addopts = "-ra --strict-markers -m 'not llm'"
 markers = [
     "db: starts a real Postgres in Docker via testcontainers",
     "ingest: runs Docling (needs the ingest extra; downloads models on first run)",
     "embed: runs a local embedding model (needs the embed extra; downloads it on first run)",
+    "llm: calls the real OpenAI API (needs OPENAI_API_KEY; costs money): pytest -m llm",
 ]

@@ -41,13 +41,16 @@ CORPUS = [  # text, page
 _PASSAGE = re.compile(r'<passage id="(\d+)"[^>]*>\n(.*)\n</passage>')
 
 
-async def add_corpus(sessions: async_sessionmaker[AsyncSession]) -> uuid.UUID:
+async def add_corpus(
+    sessions: async_sessionmaker[AsyncSession], corpus: Sequence[tuple[str, int]] = CORPUS
+) -> uuid.UUID:
+    """One document whose chunks are `corpus` (text, page), each with one span."""
     document_id = await insert_document(sessions)
-    indexed = [search_text(["2 DOSAGE"], text) for text, _ in CORPUS]
+    indexed = [search_text(["2 DOSAGE"], text) for text, _ in corpus]
     vectors = await EMBEDDER.embed_documents(indexed)
     async with sessions.begin() as session:
         for seq, ((text, page), search, vector) in enumerate(
-            zip(CORPUS, indexed, vectors, strict=True)
+            zip(corpus, indexed, vectors, strict=True)
         ):
             span = ChunkSpan(
                 seq=0, page=page, x0=0.1, y0=0.2, x1=0.9, y1=0.25, char_start=0, char_end=len(text)

@@ -97,6 +97,7 @@ docker compose up --build
 
 # checks
 cd services/api; uv run pytest            # needs Docker running
+cd services/api; uv run pytest -m llm    # real-model injection tests: needs $env:OPENAI_API_KEY, ~2 cents
 cd services/api; uv run ruff check .; uv run mypy .
 cd apps/web; pnpm lint; pnpm typecheck; pnpm test
 uvx pre-commit run --all-files
