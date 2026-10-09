@@ -7,6 +7,7 @@ from alembic import context
 from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
+import app.models  # noqa: F401  (registers the tables on Base.metadata)
 from app.config import get_settings
 from app.db import Base
 

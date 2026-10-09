@@ -27,6 +27,7 @@ from docling_core.types.doc.items.table.table import TableItem
 from docling_core.types.doc.items.text import TextItem
 from docling_core.types.doc.labels import DocItemLabel
 
+from app.ingest.failures import ParseError
 from app.ingest.models import (
     Block,
     BlockKind,
@@ -57,10 +58,6 @@ _KINDS: dict[DocItemLabel, BlockKind] = {
 # Pictures, charts and form widgets carry no text we can cite, so they are dropped.
 
 ProgressCallback = Callable[[int, int], None]  # (pages done, pages total)
-
-
-class ParseError(Exception):
-    """Docling could not convert the document."""
 
 
 def parser_version() -> str:

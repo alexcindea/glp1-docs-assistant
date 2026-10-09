@@ -8,10 +8,14 @@ import asyncio
 
 import pytest
 from alembic import command
+from alembic.autogenerate import compare_metadata
+from alembic.runtime.migration import MigrationContext
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.db import REQUIRED_EXTENSIONS
+import app.models  # noqa: F401  (registers the tables on Base.metadata)
+from app.db import REQUIRED_EXTENSIONS, Base
 from tests.conftest import alembic_config
 
 
@@ -82,3 +86,51 @@ def test_migrations_downgrade_to_base_and_upgrade_again(database_url: str) -> No
 
     command.upgrade(config, "head")
     assert required <= asyncio.run(_installed_extensions(database_url))
+
+
+async def _schema_drift(url: str) -> list[object]:
+    engine = create_async_engine(url)
+    try:
+        async with engine.connect() as conn:
+            return await conn.run_sync(
+                lambda sync: compare_metadata(MigrationContext.configure(sync), Base.metadata)
+            )
+    finally:
+        await engine.dispose()
+
+
+def test_models_match_the_migrations(migrated_database_url: str) -> None:
+    """A model changed without a migration (or the reverse) fails here, not in production."""
+    assert asyncio.run(_schema_drift(migrated_database_url)) == []
+
+
+async def _insert_span(url: str, x1: float) -> None:
+    engine = create_async_engine(url)
+    try:
+        async with engine.begin() as conn:
+            document_id = await conn.scalar(
+                text(
+                    "INSERT INTO documents (sha256, filename, size_bytes, page_count)"
+                    " VALUES (repeat('a', 64), 'x.pdf', 1, 1) RETURNING id"
+                )
+            )
+            chunk_id = await conn.scalar(
+                text(
+                    "INSERT INTO chunks (document_id, seq, kind, text, section_path,"
+                    " token_count, chunker) VALUES (:d, 0, 'text', 'hi', '{}', 1, 't')"
+                    " RETURNING id"
+                ),
+                {"d": document_id},
+            )
+            await conn.execute(
+                text("INSERT INTO chunk_spans VALUES (:c, 0, 1, 0.1, 0.1, :x1, 0.2, 0, 2)"),
+                {"c": chunk_id, "x1": x1},
+            )
+    finally:
+        await engine.dispose()
+
+
+def test_the_database_refuses_a_box_outside_the_page(migrated_database_url: str) -> None:
+    asyncio.run(_insert_span(migrated_database_url, x1=0.9))  # inside: accepted
+    with pytest.raises(IntegrityError):
+        asyncio.run(_insert_span(migrated_database_url, x1=1.2))

@@ -7,7 +7,13 @@ from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Connection, MetaData
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import Settings
@@ -54,6 +60,11 @@ def create_engine(settings: Settings) -> AsyncEngine:
         pool_pre_ping=True,
         connect_args={"timeout": settings.db_connect_timeout_seconds},
     )
+
+
+def create_sessionmaker(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
+    # expire_on_commit=False: objects stay readable after commit (no lazy reload in async).
+    return async_sessionmaker(engine, expire_on_commit=False)
 
 
 def migration_head() -> str | None:

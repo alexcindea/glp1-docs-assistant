@@ -6,18 +6,20 @@ database inside that server, so tests never see each other's data.
 """
 
 import uuid
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy.engine import make_url
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.image import DockerImage
 from testcontainers.core.wait_strategies import ExecWaitStrategy
 
 from app.config import Settings
+from app.db import create_engine, create_sessionmaker
 
 API_DIR = Path(__file__).resolve().parent.parent
 DB_IMAGE_DIR = API_DIR.parent / "db"
@@ -90,3 +92,11 @@ def alembic_config(url: str) -> Config:
 def migrated_database_url(database_url: str) -> str:
     command.upgrade(alembic_config(database_url), "head")
     return database_url
+
+
+@pytest.fixture
+async def sessions(migrated_database_url: str) -> AsyncIterator[async_sessionmaker[AsyncSession]]:
+    """Sessions on a fresh, migrated database (async tests only)."""
+    engine = create_engine(Settings(database_url=migrated_database_url))
+    yield create_sessionmaker(engine)
+    await engine.dispose()
