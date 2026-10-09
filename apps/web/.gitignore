@@ -42,3 +42,7 @@ next-env.d.ts
 
 # pdf.js runtime files, copied from node_modules by scripts/copy-pdfjs-assets.mjs
 /public/pdfjs/
+
+# Playwright
+/playwright-report/
+/test-results/

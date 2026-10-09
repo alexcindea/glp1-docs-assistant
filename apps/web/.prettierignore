@@ -6,3 +6,5 @@ openapi.json
 src/lib/api/schema.d.ts
 # Copied from pdfjs-dist by scripts/copy-pdfjs-assets.mjs
 public/pdfjs/
+playwright-report/
+test-results/

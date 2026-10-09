@@ -100,6 +100,8 @@ cd services/api; uv run pytest            # needs Docker running
 cd services/api; uv run pytest -m llm    # real-model injection tests: needs $env:OPENAI_API_KEY, ~2 cents
 cd services/api; uv run ruff check .; uv run mypy .
 cd apps/web; pnpm lint; pnpm typecheck; pnpm test
+cd apps/web; pnpm exec playwright test upload-ask-source   # browser end to end (needs the stack running; E2E_BASE_URL)
+cd apps/web; $env:MEASURE_UI = "1"; pnpm exec playwright test measure   # UI timings over the gold set (real model, ~20 cents)
 uvx pre-commit run --all-files
 uv run python evals/run.py               # retrieval eval: recall@5/@10 per path (needs the ingested corpus)
 uv run python evals/answers.py           # answer eval: real model, both rewrite settings (~45 cents, ~7 min)
