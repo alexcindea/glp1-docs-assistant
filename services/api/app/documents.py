@@ -9,8 +9,9 @@ failed before is queued again.
 import uuid
 from datetime import datetime
 from typing import Annotated, Literal
+from urllib.parse import quote
 
-from fastapi import APIRouter, File, Response, UploadFile, status
+from fastapi import APIRouter, File, Header, Response, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -256,6 +257,39 @@ async def list_chunks(document_id: uuid.UUID, session: SessionDep) -> list[Chunk
         .options(selectinload(Chunk.spans))
     )
     return [ChunkOut.model_validate(chunk, from_attributes=True) for chunk in chunks]
+
+
+@router.get(
+    "/{document_id}/file",
+    response_class=Response,
+    responses={
+        200: {
+            "content": {"application/pdf": {"schema": {"type": "string", "format": "binary"}}},
+            "description": "The PDF as uploaded.",
+        },
+        304: {"description": "The client's copy is current."},
+        **error_responses(404),
+    },
+)
+async def get_file(
+    document_id: uuid.UUID,
+    session: SessionDep,
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    """The original PDF, for the viewer. Its bytes never change (a document is its sha256),
+    so clients may keep it for good; the sha256 is its ETag."""
+    document = await _get_document(session, document_id)
+    etag = f'"{document.sha256}"'
+    headers = {"ETag": etag, "Cache-Control": "private, max-age=31536000, immutable"}
+    if if_none_match == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+    content = await session.scalar(
+        select(DocumentFile.content).where(DocumentFile.document_id == document_id)
+    )
+    if content is None:  # every document is stored with its file; this is a broken row
+        raise ApiError(status.HTTP_404_NOT_FOUND, "file_missing", "This document has no file.")
+    headers["Content-Disposition"] = f"inline; filename*=UTF-8''{quote(document.filename)}"
+    return Response(content=content, media_type="application/pdf", headers=headers)
 
 
 @router.post(

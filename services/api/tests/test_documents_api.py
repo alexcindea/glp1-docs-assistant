@@ -183,3 +183,29 @@ def test_a_document_not_yet_ingested_has_no_chunks_and_cannot_be_rechunked(
     assert client.get(f"/documents/{document_id}/chunks").json() == []
     response = client.post(f"/documents/{document_id}/rechunk")
     assert (response.status_code, response.json()["code"]) == (409, "not_ready")
+
+
+def test_the_original_pdf_is_served_for_the_viewer_and_cached_by_its_hash(
+    client: TestClient,
+) -> None:
+    data = FIXTURE_PDF.read_bytes()
+    document_id = _upload(client, data, name="Ozempic label.pdf")["id"]
+
+    response = client.get(f"/documents/{document_id}/file")
+
+    assert response.status_code == 200
+    assert response.content == data
+    assert response.headers["content-type"] == "application/pdf"
+    assert "immutable" in response.headers["cache-control"]
+    assert response.headers["content-disposition"] == "inline; filename*=UTF-8''Ozempic%20label.pdf"
+    etag = response.headers["etag"]
+    again = client.get(f"/documents/{document_id}/file", headers={"If-None-Match": etag})
+    assert again.status_code == 304
+    assert again.content == b""
+
+
+def test_the_file_of_an_unknown_document_is_a_typed_404(client: TestClient) -> None:
+    response = client.get("/documents/00000000-0000-0000-0000-000000000000/file")
+
+    assert response.status_code == 404
+    assert response.json()["code"] == "not_found"
