@@ -11,6 +11,7 @@ from sqlalchemy import update
 from app.config import Settings
 from app.db import create_engine, create_sessionmaker
 from app.factory import create_app
+from app.ingest.chunking import chunk_document
 from app.models import Document, Job
 from app.worker import IngestWorker
 from tests.factories import FIXTURE_PDF, FakeParser, fake_parsed
@@ -107,17 +108,17 @@ def test_chunks_come_back_with_their_provenance(
     chunks = client.get(f"/documents/{document_id}/chunks").json()
 
     assert (document["status"], document["active_job"]) == ("ready", None)
-    expected = fake_parsed().blocks  # placeholder chunker: one chunk per block
-    assert [c["text"] for c in chunks] == [b.text for b in expected]
+    expected = chunk_document(fake_parsed())
+    assert [c["text"] for c in chunks] == [c.text for c in expected]
     assert [c["seq"] for c in chunks] == list(range(len(expected)))
-    for chunk, block in zip(chunks, expected, strict=True):
-        assert chunk["section_path"] == block.section_path
+    for chunk, draft in zip(chunks, expected, strict=True):
+        assert (chunk["kind"], chunk["section_path"]) == (draft.kind, draft.section_path)
         assert [
             (s["page"], s["x0"], s["y0"], s["x1"], s["y1"], s["char_start"], s["char_end"])
             for s in chunk["spans"]
         ] == [
             (r.page, r.bbox.x0, r.bbox.y0, r.bbox.x1, r.bbox.y1, r.char_start, r.char_end)
-            for r in block.regions
+            for r in draft.spans
         ]
 
 

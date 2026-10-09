@@ -12,6 +12,7 @@ import pytest
 
 pytest.importorskip("docling", reason="needs the ingest extra: uv sync --all-extras")
 
+from app.ingest.chunking import ChunkingConfig, chunk_document
 from app.ingest.models import BlockKind, ParsedDocument
 from app.ingest.parse import DoclingParser
 
@@ -80,3 +81,18 @@ def test_table_is_stored_as_markdown_and_cells(parsed: ParsedDocument) -> None:
 def test_parser_records_its_versions(parsed: ParsedDocument) -> None:
     assert "docling" in parsed.parser
     assert "rapidocr" in parsed.parser
+
+
+def test_the_real_parse_chunks_cleanly(parsed: ParsedDocument) -> None:
+    config = ChunkingConfig()
+    chunks = chunk_document(parsed, config)  # each ChunkDraft validates its own spans
+
+    assert chunks
+    assert all(c.token_count <= config.max_tokens for c in chunks if c.kind == "text")
+    chunked = {i for c in chunks for i in c.block_indices}
+    content = {
+        b.index
+        for b in parsed.blocks
+        if b.kind not in (BlockKind.HEADING, BlockKind.TITLE, BlockKind.INDEX)
+    }
+    assert content <= chunked  # nothing citeable is lost
