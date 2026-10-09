@@ -32,6 +32,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
+# The vector size of the embedding model (Qwen3-Embedding-0.6B, see
+# app.local_embedder). Changing the model to one of another size needs a migration;
+# app.providers refuses an embedder that doesn't match.
+EMBEDDING_DIMENSIONS = 1024
+
 
 class DocumentStatus(StrEnum):
     QUEUED = "queued"

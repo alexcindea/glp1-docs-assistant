@@ -14,7 +14,8 @@ from app.llm import (
     StreamEnd,
     TextDelta,
 )
-from app.providers import build_embedder, build_llm_provider
+from app.models import EMBEDDING_DIMENSIONS
+from app.providers import build_embedder, build_llm_provider, check_dimensions
 
 
 def _request(question: str) -> CompletionRequest:
@@ -78,10 +79,15 @@ async def test_fake_embedder_puts_texts_sharing_words_closer() -> None:
     assert cosine(query, related) > cosine(query, unrelated)
 
 
-def test_factory_builds_fakes_with_configured_dimensions() -> None:
-    settings = Settings(embedding_dimensions=1024)
+def test_factory_builds_fakes_sized_for_the_database() -> None:
+    settings = Settings()
 
     assert build_llm_provider(settings).name == "fake"
     embedder = build_embedder(settings)
     assert embedder.name == "fake"
-    assert embedder.dimensions == 1024
+    assert embedder.dimensions == EMBEDDING_DIMENSIONS
+
+
+def test_an_embedder_that_does_not_fit_the_column_is_refused() -> None:
+    with pytest.raises(ValueError, match="needs a migration"):
+        check_dimensions(FakeEmbedder(dimensions=384))

@@ -29,11 +29,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://app:app@127.0.0.1:5432/app"
     db_connect_timeout_seconds: float = 5.0
 
-    # Model backends. "fake" needs no key and no download; real ones arrive with
-    # retrieval (embedder) and grounded answers (LLM).
+    # Model backends. "fake" needs no key and no download (tests, CI). The real
+    # embedder runs locally (app.local_embedder); the real LLM arrives in phase 5.
     llm_provider: Literal["fake"] = "fake"
-    embedder: Literal["fake"] = "fake"
-    embedding_dimensions: int = 384
+    embedder: Literal["fake", "qwen3-0.6b"] = "fake"
 
     # Uploads
     max_upload_mb: int = 100
