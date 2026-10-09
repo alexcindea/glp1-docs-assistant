@@ -128,3 +128,66 @@
     @apply font-sans;
   }
 }
+
+/* Answers are Markdown from the model; no typography plugin, just what it uses. */
+@layer components {
+  .prose-answer > :first-child {
+    margin-top: 0;
+  }
+  .prose-answer > :last-child {
+    margin-bottom: 0;
+  }
+  .prose-answer p,
+  .prose-answer ul,
+  .prose-answer ol {
+    margin: 0.6em 0;
+  }
+  .prose-answer ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .prose-answer ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+  }
+  .prose-answer li {
+    margin: 0.25em 0;
+  }
+  .prose-answer strong {
+    font-weight: 600;
+  }
+  .prose-answer h1,
+  .prose-answer h2,
+  .prose-answer h3 {
+    margin: 0.9em 0 0.3em;
+    font-weight: 600;
+  }
+  /* While streaming, a cursor right after the last word, not on a line of its own. */
+  .prose-answer[data-streaming] > :is(p, h1, h2, h3):last-child::after,
+  .prose-answer[data-streaming]
+    > :is(ul, ol):last-child
+    > li:last-child::after {
+    content: "";
+    display: inline-block;
+    width: 0.45em;
+    height: 1em;
+    margin-left: 0.15em;
+    vertical-align: -0.15em;
+    background: currentColor;
+    opacity: 0.45;
+    animation: answer-cursor 1s steps(2, start) infinite;
+  }
+  .prose-answer code {
+    border-radius: 0.25rem;
+    background: var(--muted);
+    padding: 0.1em 0.3em;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+}
+
+@keyframes answer-cursor {
+  to {
+    visibility: hidden;
+  }
+}
