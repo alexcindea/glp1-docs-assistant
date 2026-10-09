@@ -24,6 +24,17 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-09 · Claude flagged gold item q004 as too strict: it accepted only one sentence
+  ("The pen should be discarded 30 days after first use"), while the same label says it twice
+  more (patient information p19, pen instructions p22), and retrieval was finding those · I
+  agreed and had Claude change it, the only edit to `evals/gold.jsonl` since it was written.
+  The gold format gained `"match": "any"` (each passage answers on its own; the default "all"
+  still needs every passage, as comparisons do). Fused recall@10 went from 0.76 to 0.79 from
+  this correction alone, not from better retrieval.
+- 2026-10-09 · handed over my own documentation tasks · Claude finalised these entries and the
+  decision records, and recommended not committing my local `.claude/settings.json` changes
+  (they removed the rules that keep Claude from reading `.env` and editing the gold set, and
+  added one-off rules with my local paths) or the superseded gold drafts · kept that advice.
 - 2026-10-09 · checkpoint review of phase 4 by the reviewer subagent · it found that vector
   search compared vectors from whatever model made them (a corpus embedded by the fake embedder
   would be ranked by noise), that reusing vectors ignored the model revision, that a failed

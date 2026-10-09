@@ -50,8 +50,9 @@ to the candidate count and iterative scans on, so a document filter can't return
 **Why:** The paths fail differently: BM25 finds scanned pages and exact names (scan 0.75,
 "printed page differs" 1.0, vectors 0.25 and 0.0 with bge) and vectors find paraphrases
 (follow-ups 1.0 vs 0.67). Ranks avoid comparing BM25 scores with cosine similarities. End to
-end (`evals/results/retrieval.md`): vector 0.60, BM25 0.65, fused 0.76 recall@10; fused
-recall@5 0.65. Indexing the section path helped bge's vector recall@5 from 0.32 to 0.42; with
+end (`evals/results/retrieval.md`): vector 0.63, BM25 0.68, fused 0.79 recall@10; fused
+recall@5 0.68 (0.76 and 0.65 before q004 accepted the label's other statements of the same
+fact; see the AI usage log). Indexing the section path helped bge's vector recall@5 from 0.32 to 0.42; with
 Qwen3 it gained a question at @10 (0.71 to 0.74) and lost one and a half at @5 (0.65 to 0.60),
 within noise on 31 questions, so I kept it for the larger top-10 gain and so both paths see the
 same text. Without the HNSW settings a test returned 41 of 60 rows, and none with a document
