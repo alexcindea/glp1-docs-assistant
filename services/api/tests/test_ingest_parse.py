@@ -96,3 +96,8 @@ def test_the_real_parse_chunks_cleanly(parsed: ParsedDocument) -> None:
         if b.kind not in (BlockKind.HEADING, BlockKind.TITLE, BlockKind.INDEX)
     }
     assert content <= chunked  # nothing citeable is lost
+    paths = {title for c in chunks for title in c.section_path}
+    for block in parsed.blocks:  # a heading may be a bare label, but one stating a fact
+        if block.kind in (BlockKind.HEADING, BlockKind.TITLE) and ":" in block.text:
+            title = block.section_path[-1]
+            assert block.index in chunked or title in paths, f"heading lost: {title!r}"

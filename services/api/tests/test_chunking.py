@@ -273,3 +273,300 @@ def test_chunking_is_deterministic() -> None:
 
 def test_token_estimate_counts_words() -> None:
     assert approx_tokens("one two three four five six seven eight nine ten") == 13
+
+
+def test_a_framed_text_box_read_as_a_table_still_fits() -> None:
+    # EMA study summaries: a frame Docling reads as a table whose "header" is a wall of text.
+    wall = " ".join(["The trial enrolled adults with type 2 diabetes."] * 150)  # ~1300 tokens
+    markdown = f"| | {wall} |\n|---|---|\n| | Results follow. |"
+    region = Region(
+        page=1, bbox=BBox(x0=0.1, y0=0.1, x1=0.9, y1=0.9), char_start=0, char_end=len(markdown)
+    )
+    table = Table(n_rows=2, n_cols=2, cells=[])
+    doc = _doc(
+        [_block(0, BlockKind.TABLE, markdown, ["Clinical efficacy"], regions=[region], table=table)]
+    )
+
+    chunks = chunk_document(doc, CONFIG)
+
+    assert len(chunks) >= 3
+    for chunk in chunks:
+        assert chunk.token_count <= CONFIG.max_tokens
+        for line in chunk.text.split("\n"):
+            assert line in markdown  # exact pieces of the original, nothing rewritten
+        assert chunk.spans[0].bbox == region.bbox  # rows can't be placed: the table's box
+    assert "".join(c.text.replace("\n", " ") for c in chunks).count("type 2 diabetes") == 150
+
+
+def test_a_merged_cell_is_written_once() -> None:
+    # Docling's Markdown repeats a cell spanning three columns three times.
+    cells = [
+        TableCell(
+            row=0, col=0, row_span=1, col_span=1, text="Trial", is_header=True, bbox=_row_box(0)
+        ),
+        TableCell(
+            row=0, col=1, row_span=1, col_span=3, text="Outcome", is_header=True, bbox=_row_box(0)
+        ),
+        TableCell(
+            row=1, col=0, row_span=1, col_span=1, text="STEP 1", is_header=False, bbox=_row_box(1)
+        ),
+        TableCell(
+            row=1,
+            col=1,
+            row_span=1,
+            col_span=3,
+            text="-14.9% vs -2.4%",
+            is_header=False,
+            bbox=_row_box(1),
+        ),
+    ]
+    docling_markdown = (
+        "| Trial | Outcome | Outcome | Outcome |\n|---|---|---|---|\n"
+        "| STEP 1 | -14.9% vs -2.4% | -14.9% vs -2.4% | -14.9% vs -2.4% |"
+    )
+    region = Region(
+        page=1,
+        bbox=BBox(x0=0.1, y0=0.2, x1=0.9, y1=0.3),
+        char_start=0,
+        char_end=len(docling_markdown),
+    )
+    table = Table(n_rows=2, n_cols=4, cells=cells)
+    doc = _doc(
+        [_block(0, BlockKind.TABLE, docling_markdown, ["Results"], regions=[region], table=table)]
+    )
+
+    (chunk,) = chunk_document(doc, CONFIG)
+
+    assert (
+        chunk.text
+        == "| Trial | Outcome |  |  |\n|---|---|---|---|\n| STEP 1 | -14.9% vs -2.4% |  |  |"
+    )
+    assert chunk.text.count("-14.9%") == 1
+    assert [s.bbox for s in chunk.spans] == [_row_box(0), _row_box(1)]
+
+
+def test_a_table_without_any_text_makes_no_chunk() -> None:
+    # A scanned page: OCR found the table's frame but no words in its cells.
+    cells = [
+        TableCell(row=r, col=c, row_span=1, col_span=1, text="", is_header=r == 0, bbox=_row_box(r))
+        for r in range(2)
+        for c in range(2)
+    ]
+    markdown = "|  |  |\n|---|---|\n|  |  |"
+    region = Region(
+        page=1, bbox=BBox(x0=0.1, y0=0.2, x1=0.9, y1=0.3), char_start=0, char_end=len(markdown)
+    )
+    path = ["Results"]
+    doc = _doc(
+        [
+            _block(
+                0,
+                BlockKind.TABLE,
+                markdown,
+                path,
+                regions=[region],
+                table=Table(n_rows=2, n_cols=2, cells=cells),
+            ),
+            _block(1, BlockKind.PARAGRAPH, "The trial met its endpoint.", path),
+        ]
+    )
+
+    assert [c.block_indices for c in chunk_document(doc, CONFIG)] == [[1]]
+
+
+def test_a_header_only_table_is_kept_as_content() -> None:
+    cells = [
+        TableCell(row=0, col=c, row_span=1, col_span=1, text=t, is_header=True, bbox=_row_box(0))
+        for c, t in enumerate(("Dose", "Frequency"))
+    ]
+    markdown = "| Dose | Frequency |\n|---|---|"
+    region = Region(
+        page=1, bbox=BBox(x0=0.1, y0=0.2, x1=0.9, y1=0.3), char_start=0, char_end=len(markdown)
+    )
+    doc = _doc(
+        [
+            _block(
+                0,
+                BlockKind.TABLE,
+                markdown,
+                ["Dosing"],
+                regions=[region],
+                table=Table(n_rows=1, n_cols=2, cells=cells),
+            )
+        ]
+    )
+
+    (chunk,) = chunk_document(doc, CONFIG)
+
+    assert chunk.text == "| Dose | Frequency |"
+
+
+def _cell(
+    row: int, col: int, text: str, *, rows: int = 1, cols: int = 1, box: BBox | None = None
+) -> TableCell:
+    return TableCell(
+        row=row,
+        col=col,
+        row_span=rows,
+        col_span=cols,
+        text=text,
+        is_header=row == 0,
+        bbox=box or _row_box(row),
+    )
+
+
+def _table_block(
+    index: int,
+    cells: list[TableCell],
+    n_rows: int,
+    n_cols: int,
+    regions: list[Region],
+    path: list[str],
+    text: str = "| (Docling Markdown, unused when cells have text) |",
+) -> Block:
+    return Block(
+        index=index,
+        kind=BlockKind.TABLE,
+        text=text,
+        regions=[r.model_copy(update={"char_start": 0, "char_end": len(text)}) for r in regions],
+        section_path=path,
+        table=Table(n_rows=n_rows, n_cols=n_cols, cells=cells),
+    )
+
+
+ONE_PAGE = [Region(page=1, bbox=BBox(x0=0.1, y0=0.2, x1=0.9, y1=0.8), char_start=0, char_end=1)]
+
+
+def test_a_table_across_pages_keeps_every_page() -> None:
+    regions = [
+        Region(page=1, bbox=BBox(x0=0.1, y0=0.7, x1=0.9, y1=0.95), char_start=0, char_end=1),
+        Region(page=2, bbox=BBox(x0=0.1, y0=0.05, x1=0.9, y1=0.3), char_start=0, char_end=1),
+    ]
+    cells = [_cell(0, 0, "Arm"), _cell(1, 0, "Placebo"), _cell(2, 0, "Drug")]
+    doc = _doc([_table_block(0, cells, 3, 1, regions, ["Results"])])
+
+    (chunk,) = chunk_document(doc, CONFIG)
+
+    rows_spans = [s for s in chunk.spans if s.char_end == len(chunk.text)]
+    assert {s.page for s in rows_spans} == {1, 2}  # it may be on either page, not just page 1
+
+
+def test_a_heading_with_no_body_and_no_subsections_is_kept() -> None:
+    doc = _doc(
+        [
+            _block(
+                0, BlockKind.HEADING, "Initial U.S. Approval: 2005", ["Initial U.S. Approval: 2005"]
+            ),
+            _block(1, BlockKind.HEADING, "1 INDICATIONS", ["1 INDICATIONS"]),
+            _block(2, BlockKind.PARAGRAPH, "For type 2 diabetes.", ["1 INDICATIONS"]),
+        ]
+    )
+
+    chunks = chunk_document(doc, CONFIG)
+
+    assert [c.text for c in chunks] == [
+        "Initial U.S. Approval: 2005",
+        "1 INDICATIONS\nFor type 2 diabetes.",
+    ]
+
+
+def test_the_caption_of_an_empty_table_is_kept_as_text() -> None:
+    path = ["Results"]
+    empty = [_cell(r, c, "") for r in range(2) for c in range(2)]
+    doc = _doc(
+        [
+            _block(0, BlockKind.CAPTION, "Table 2: Adverse events by arm", path),
+            _table_block(1, empty, 2, 2, ONE_PAGE, path, text="|  |  |"),
+        ]
+    )
+
+    (chunk,) = chunk_document(doc, CONFIG)
+
+    assert (chunk.kind, chunk.text) == ("text", "Table 2: Adverse events by arm")
+
+
+def test_a_cell_merged_down_rows_labels_each_row_and_boxes_stay_tight() -> None:
+    label_box = BBox(x0=0.1, y0=_row_box(1).y0, x1=0.3, y1=_row_box(2).y1)
+    cells = [
+        _cell(0, 0, "Arm"),
+        _cell(0, 1, "Dose"),
+        _cell(1, 0, "Placebo", rows=2, box=label_box),
+        _cell(1, 1, "0 mg"),
+        _cell(2, 1, "0 mg weekly"),
+    ]
+    doc = _doc([_table_block(0, cells, 3, 2, ONE_PAGE, ["Results"])])
+
+    (chunk,) = chunk_document(doc, CONFIG)
+
+    assert chunk.text.split("\n")[2:] == ["| Placebo | 0 mg |", "| Placebo | 0 mg weekly |"]
+    rows_span = chunk.spans[-1]
+    assert (rows_span.bbox.y0, rows_span.bbox.y1) == (_row_box(1).y0, _row_box(2).y1)
+
+
+def test_each_part_of_a_split_table_boxes_exactly_its_own_rows() -> None:
+    cells = [_cell(0, 0, "Trial"), _cell(0, 1, "Result")]
+    for r in range(1, 41):
+        cells += [_cell(r, 0, f"Trial {r}"), _cell(r, 1, " ".join(["better"] * 12))]
+    doc = _doc([_table_block(0, cells, 41, 2, ONE_PAGE, ["Results"])])
+
+    chunks = chunk_document(doc, CONFIG)
+
+    assert len(chunks) >= 2
+    for chunk in chunks:
+        numbers = [int(line.split("|")[1].split()[1]) for line in chunk.text.split("\n")[2:]]
+        rows_span = chunk.spans[-1]
+        assert rows_span.bbox.y0 == _row_box(numbers[0]).y0
+        assert rows_span.bbox.y1 == _row_box(numbers[-1]).y1
+
+
+def test_a_row_cut_between_words_keeps_its_rows_box() -> None:
+    wall = " ".join(["The trial enrolled adults with type 2 diabetes."] * 120)
+    cells = [
+        _cell(0, 0, "Trial"),
+        _cell(0, 1, "Design"),
+        _cell(1, 0, "SUSTAIN 1"),
+        _cell(1, 1, wall),
+    ]
+    doc = _doc([_table_block(0, cells, 2, 2, ONE_PAGE, ["Clinical efficacy"])])
+
+    chunks = chunk_document(doc, CONFIG)
+
+    assert len(chunks) >= 2
+    assert all(c.token_count <= CONFIG.max_tokens for c in chunks)
+    assert all(c.spans[-1].bbox == _row_box(1) for c in chunks)
+
+
+def test_a_caption_after_its_table_is_attached_but_a_long_one_is_not() -> None:
+    path = ["Results"]
+    cells = [_cell(0, 0, "Arm"), _cell(1, 0, "Placebo")]
+    doc = _doc(
+        [
+            _table_block(0, cells, 2, 1, ONE_PAGE, path),
+            _block(1, BlockKind.CAPTION, "Table 1: Arms", path),
+        ]
+    )
+    (chunk,) = chunk_document(doc, CONFIG)
+    assert chunk.text.startswith("Table 1: Arms\n")
+
+    long_caption = " ".join(["word"] * 200)
+    doc = _doc(
+        [
+            _block(0, BlockKind.CAPTION, long_caption, path),
+            _table_block(1, cells, 2, 1, ONE_PAGE, path),
+        ]
+    )
+    kinds = [(c.kind, c.block_indices) for c in chunk_document(doc, CONFIG)]
+    assert kinds == [("text", [0]), ("table", [1])]
+    assert all(c.token_count <= CONFIG.max_tokens for c in chunk_document(doc, CONFIG))
+
+
+def test_a_lone_heading_without_a_fact_is_dropped() -> None:
+    doc = _doc(
+        [
+            _block(0, BlockKind.HEADING, "CENTER FOR DRUG EVALUATION AND RESEARCH", ["CENTER"]),
+            _block(1, BlockKind.HEADING, "1 INDICATIONS", ["1 INDICATIONS"]),
+            _block(2, BlockKind.PARAGRAPH, "For type 2 diabetes.", ["1 INDICATIONS"]),
+        ]
+    )
+
+    assert [c.block_indices for c in chunk_document(doc, CONFIG)] == [[1, 2]]
