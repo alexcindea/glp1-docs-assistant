@@ -570,3 +570,63 @@ def test_a_lone_heading_without_a_fact_is_dropped() -> None:
     )
 
     assert [c.block_indices for c in chunk_document(doc, CONFIG)] == [[1, 2]]
+
+
+def _two_page_table(second_first_row: str, *, between: bool = False) -> ParsedDocument:
+    """A 2-column table on page 1 (caption, header, one row) and one on page 2."""
+    path = ["6 ADVERSE REACTIONS"]
+    page_1 = [Region(page=1, bbox=BBox(x0=0.1, y0=0.6, x1=0.9, y1=0.95), char_start=0, char_end=1)]
+    page_2 = [Region(page=2, bbox=BBox(x0=0.1, y0=0.05, x1=0.9, y1=0.3), char_start=0, char_end=1)]
+    first = [
+        _cell(0, 0, "Reaction"),
+        _cell(0, 1, "15 mg %"),
+        _cell(1, 0, "Nausea"),
+        _cell(1, 1, "18"),
+    ]
+    second = [
+        _cell(0, 0, second_first_row),
+        _cell(0, 1, "17" if second_first_row == "Diarrhea" else "15 mg %"),
+        _cell(1, 0, "Vomiting"),
+        _cell(1, 1, "9"),
+    ]
+    blocks = [
+        _block(0, BlockKind.CAPTION, "Table 1: Adverse Reactions", path),
+        _table_block(1, first, 2, 2, page_1, path),
+    ]
+    if between:
+        blocks.append(_block(2, BlockKind.PARAGRAPH, "Note: percentages of patients.", path))
+    blocks.append(_table_block(len(blocks), second, 2, 2, page_2, path))
+    return _doc(blocks)
+
+
+def test_a_table_continued_on_the_next_page_gets_the_caption_and_header_where_they_are() -> None:
+    doc = _two_page_table("Diarrhea")
+
+    first, second = chunk_document(doc, CONFIG)
+
+    assert second.text.splitlines() == [
+        "Table 1: Adverse Reactions",
+        "| Reaction | 15 mg % |",
+        "|---|---|",
+        "| Diarrhea | 17 |",
+        "| Vomiting | 9 |",
+    ]
+    caption_span, header_span, rows_span = second.spans
+    assert (caption_span.page, header_span.page, rows_span.page) == (1, 1, 2)
+    assert header_span.bbox == _row_box(0)  # the header row of the first part
+    assert second.text[rows_span.char_start : rows_span.char_end].startswith("| Diarrhea")
+    assert sorted(second.block_indices) == [0, 1, 2]
+    assert first.text.startswith("Table 1: Adverse Reactions\n| Reaction")
+
+
+def test_a_next_page_table_that_repeats_its_header_is_left_alone() -> None:
+    _, second = chunk_document(_two_page_table("Reaction"), CONFIG)
+
+    assert second.text.splitlines()[0] == "| Reaction | 15 mg % |"
+    assert {s.page for s in second.spans} == {2}
+
+
+def test_a_table_after_text_is_not_a_continuation() -> None:
+    chunks = chunk_document(_two_page_table("Diarrhea", between=True), CONFIG)
+
+    assert chunks[-1].text.splitlines()[0] == "| Diarrhea | 17 |"

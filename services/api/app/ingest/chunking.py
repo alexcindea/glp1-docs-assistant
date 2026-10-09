@@ -26,6 +26,11 @@ The rules, in order of importance:
    table still says which arm or study a row belongs to). A table too big for one
    chunk is split into groups of rows, each repeating the header; each part's box is
    the union of its rows' boxes, so a citation highlights the rows it quotes.
+   A table that a page break cut in two often reaches us as two tables, the second
+   without its header ("| Diarrhea | 9 | 12 | 13 | 17 |" under no column names).
+   When a table starts the next page right after one with as many columns, has no
+   caption of its own and doesn't repeat the header, its chunks get the first
+   table's caption and header, boxed where they are, on the page before.
 5. Tables of contents are skipped: they would match every query and answer none.
 """
 
@@ -39,7 +44,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from app.ingest.models import BBox, Block, BlockKind, ParsedDocument, Region, check_coverage
 
-CHUNKER_VERSION = "sections-v3"
+CHUNKER_VERSION = "sections-v5"
 _TOKENS_PER_WORD = 1.3
 _SENTENCE_END = re.compile(r"[.!?][\"')\]]*$")
 _MARKDOWN_RULE = re.compile(r"^\|?\s*:?-{3,}")
@@ -101,6 +106,15 @@ def _check_alternatives(text: str, spans: Sequence[Region]) -> None:
         raise ValueError(f"spans end at {expected}, text has {len(text)} characters")
 
 
+@dataclass(frozen=True)
+class _Continued:
+    """For a table continued from the page before: what it takes from where it began."""
+
+    table: Block  # the table it continues (the first part, if it spans several pages)
+    caption: Block | None
+    header: list[Line]
+
+
 @dataclass
 class _Piece:
     """Text with its spans rebased to the piece (an exact substring, for text blocks)."""
@@ -123,6 +137,7 @@ def chunk_document(
     captions = _captions_by_table(blocks, config)
     used_captions = set(captions.values())
     by_index = {b.index: b for b in blocks}
+    continued = _continued_tables(blocks, captions, by_index, config)
     sections = [
         (list(path), list(group))
         for path, group in itertools.groupby(blocks, key=lambda b: tuple(b.section_path))
@@ -139,7 +154,9 @@ def chunk_document(
                 chunks.extend(_flush(pending, path))
                 pending = []
                 caption = by_index.get(captions.get(block.index, -1))
-                table_chunks = _table_chunks(block, caption, path, config)
+                table_chunks = _table_chunks(
+                    block, caption, path, config, continued.get(block.index)
+                )
                 chunks.extend(table_chunks)
                 if not table_chunks and caption:  # an empty table: keep its caption
                     pending.append(
@@ -186,6 +203,37 @@ def _captions_by_table(blocks: Sequence[Block], config: ChunkingConfig) -> dict[
                     found[block.index] = neighbour.index
                     taken.add(j)
                     break
+    return found
+
+
+def _continued_tables(
+    blocks: Sequence[Block],
+    captions: dict[int, int],
+    by_index: dict[int, Block],
+    config: ChunkingConfig,
+) -> dict[int, _Continued]:
+    """table block index -> what it continues, for tables a page break cut off their header."""
+    found: dict[int, _Continued] = {}
+    for previous, table in itertools.pairwise(blocks):
+        if (
+            previous.kind != BlockKind.TABLE
+            or table.kind != BlockKind.TABLE
+            or previous.table is None
+            or table.table is None
+            or table.table.n_cols != previous.table.n_cols
+            or table.regions[0].page != previous.regions[-1].page + 1
+            or table.index in captions
+        ):
+            continue
+        origin = found.get(previous.index) or _Continued(
+            table=previous,
+            caption=by_index.get(captions.get(previous.index, -1)),
+            header=_split_header(previous, config)[0],
+        )
+        own_header, _ = _table_lines(table)
+        if not origin.header or (own_header and own_header[0][1] == origin.header[0][1]):
+            continue  # nothing to carry, or it repeats the header itself
+        found[table.index] = origin
     return found
 
 
@@ -282,21 +330,34 @@ def _clip(regions: Sequence[Region], start: int, end: int) -> list[Region]:
     return clipped
 
 
-def _table_chunks(
-    table: Block, caption: Block | None, path: list[str], config: ChunkingConfig
-) -> list[ChunkDraft]:
+def _split_header(table: Block, config: ChunkingConfig) -> tuple[list[Line], list[Line]]:
+    """(header lines repeated on every part, row lines)."""
     header, rows = _table_lines(table)
     if header and not rows:  # only a header row: that is the content
-        rows = [line for line in header if not _MARKDOWN_RULE.match(line[1])]
-        header = []
+        return [], [line for line in header if not _MARKDOWN_RULE.match(line[1])]
+    if header and sum(_words(text) for _, text in header) > _word_limit(config.max_tokens) // 3:
+        # A "header" this big is content (EMA frames whole study summaries as tables),
+        # not column titles: don't repeat it on every part.
+        return [], [line for line in header if not _MARKDOWN_RULE.match(line[1])] + rows
+    return header, rows
+
+
+def _table_chunks(
+    table: Block,
+    caption: Block | None,
+    path: list[str],
+    config: ChunkingConfig,
+    continued: _Continued | None = None,
+) -> list[ChunkDraft]:
+    header, rows = _split_header(table, config)
+    header_table = table
+    if continued:
+        # Its first row is data, not column names: the header is the first part's.
+        rows = [line for line in header if not _MARKDOWN_RULE.match(line[1])] + rows
+        header, header_table, caption = continued.header, continued.table, continued.caption
     if not rows:
         return []  # a table with no text in it: nothing to search or cite
     max_words = _word_limit(config.max_tokens)
-    if header and sum(_words(text) for _, text in header) > max_words // 3:
-        # A "header" this big is content (EMA frames whole study summaries as tables),
-        # not column titles: don't repeat it on every part.
-        rows = [line for line in header if not _MARKDOWN_RULE.match(line[1])] + rows
-        header = []
     header_text = "\n".join(text for _, text in header)
     caption_words = _words(caption.text) if caption else 0
     budget = max(max_words - caption_words - _words(header_text), 1)  # words for rows
@@ -320,14 +381,15 @@ def _table_chunks(
         used += words
 
     row_boxes = _row_boxes(table)
-    header_box = _union(row_boxes[r] for r, _ in header if r is not None and r in row_boxes)
+    header_boxes = _row_boxes(header_table)
+    header_box = _union(header_boxes[r] for r, _ in header if r is not None and r in header_boxes)
     chunks = []
     for group in groups:
         pieces: list[_Piece] = []
         if caption:
             pieces.append(_Piece(caption.text, list(caption.regions), caption.index, False))
         if header:
-            pieces.append(_table_piece(table, header_text, header_box))
+            pieces.append(_table_piece(header_table, header_text, header_box))
         group_rows = dict.fromkeys(r for r, _ in group if r is not None)
         box = _union(row_boxes[r] for r in group_rows if r in row_boxes)
         pieces.append(_table_piece(table, "\n".join(text for _, text in group), box))
@@ -338,7 +400,9 @@ def _table_chunks(
                 text=text,
                 section_path=path,
                 token_count=approx_tokens(text),
-                block_indices=[table.index] + ([caption.index] if caption else []),
+                block_indices=[table.index]
+                + ([caption.index] if caption else [])
+                + ([header_table.index] if header_table is not table else []),
                 table_block=table.index,
                 spans=spans,
             )
