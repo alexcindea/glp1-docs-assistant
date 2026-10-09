@@ -42,7 +42,7 @@ export function healthChecks(report: ReadinessReport): Check[] {
     {
       label: "Embedder",
       value: `${report.models.embedder}, ${report.models.embedding_dimensions} dimensions`,
-      ok: true,
+      ok: report.models.problems.length === 0,
     },
   ];
 }
@@ -65,6 +65,16 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
     <Badge className="bg-emerald-600 text-white">{label}</Badge>
   ) : (
     <Badge variant="destructive">{label}</Badge>
+  );
+}
+
+function Warnings({ warnings }: { warnings: string[] }) {
+  return (
+    <ul className="space-y-1 rounded-lg bg-amber-500/10 p-3 text-amber-800 dark:text-amber-300">
+      {warnings.map((warning, i) => (
+        <li key={i}>{withInlineCode(warning)}</li>
+      ))}
+    </ul>
   );
 }
 
@@ -98,6 +108,7 @@ export function StatusView({ result }: { result: HealthResult }) {
 
   const { report } = result;
   const ready = report.status === "ready";
+  const problems = [...report.database.problems, ...report.models.problems];
   return (
     <Card>
       <CardHeader>
@@ -138,8 +149,9 @@ export function StatusView({ result }: { result: HealthResult }) {
             </div>
           ))}
         </dl>
-        {report.database.problems.length > 0 && (
-          <Problems problems={report.database.problems} />
+        {problems.length > 0 && <Problems problems={problems} />}
+        {report.models.warnings.length > 0 && (
+          <Warnings warnings={report.models.warnings} />
         )}
       </CardContent>
     </Card>

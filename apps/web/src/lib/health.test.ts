@@ -13,7 +13,13 @@ const report: ReadinessReport = {
     extensions: [],
     problems: ["Cannot reach Postgres."],
   },
-  models: { llm_provider: "fake", embedder: "fake", embedding_dimensions: 384 },
+  models: {
+    llm_provider: "fake",
+    embedder: "fake",
+    embedding_dimensions: 1024,
+    problems: [],
+    warnings: [],
+  },
 };
 
 function clientReturning(response: () => Promise<Response>) {

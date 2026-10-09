@@ -1,5 +1,6 @@
 """Process-wide resources created at startup, exposed to routes as typed dependencies."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Annotated, cast
@@ -20,6 +21,8 @@ class AppState:
     expected_revision: str | None
     llm: LLMProvider
     embedder: Embedder
+    # Loading the local embedding model in the background; None for the fake.
+    embedder_loading: asyncio.Task[None] | None = None
 
 
 def get_app_state(request: Request) -> AppState:

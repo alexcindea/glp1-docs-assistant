@@ -18,7 +18,13 @@ const ready: ReadinessReport = {
     ],
     problems: [],
   },
-  models: { llm_provider: "fake", embedder: "fake", embedding_dimensions: 384 },
+  models: {
+    llm_provider: "fake",
+    embedder: "fake",
+    embedding_dimensions: 1024,
+    problems: [],
+    warnings: [],
+  },
 };
 
 describe("StatusView", () => {
@@ -61,6 +67,33 @@ describe("StatusView", () => {
       "CODE",
     );
     expect(screen.getAllByLabelText("failing")).toHaveLength(2);
+  });
+
+  it("shows an embedding model problem and warnings about chunks", () => {
+    const loading: ReadinessReport = {
+      ...ready,
+      status: "not_ready",
+      models: {
+        ...ready.models,
+        problems: ["The embedding model is still loading (seconds)."],
+        warnings: ["3 chunks have no vector from this model."],
+      },
+    };
+
+    render(
+      <StatusView
+        result={{ kind: "report", httpStatus: 503, report: loading }}
+      />,
+    );
+
+    expect(screen.getByText("Not ready")).toBeInTheDocument();
+    expect(
+      screen.getByText("The embedding model is still loading (seconds)."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("3 chunks have no vector from this model."),
+    ).toBeInTheDocument();
+    expect(screen.getAllByLabelText("failing")).toHaveLength(1);
   });
 
   it("explains how to start the API when it cannot be reached", () => {

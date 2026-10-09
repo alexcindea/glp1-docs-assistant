@@ -118,6 +118,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search */
+        post: operations["search_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -264,6 +281,26 @@ export interface components {
             embedder: string;
             /** Embedding Dimensions */
             embedding_dimensions: number;
+            /**
+             * Problems
+             * @default []
+             */
+            problems: string[];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /**
+         * PathRanks
+         * @description 1-based rank in each search path; null when that path didn't find the chunk.
+         */
+        PathRanks: {
+            /** Vector */
+            vector: number | null;
+            /** Bm25 */
+            bm25: number | null;
         };
         /** ReadinessReport */
         ReadinessReport: {
@@ -274,6 +311,39 @@ export interface components {
             status: "ready" | "not_ready";
             database: components["schemas"]["DatabaseStatus"];
             models: components["schemas"]["ModelsStatus"];
+        };
+        /** SearchHit */
+        SearchHit: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Filename */
+            filename: string;
+            /** Score */
+            score: number;
+            ranks: components["schemas"]["PathRanks"];
+            chunk: components["schemas"]["ChunkOut"];
+        };
+        /** SearchRequest */
+        SearchRequest: {
+            /** Query */
+            query: string;
+            /** Document Ids */
+            document_ids?: string[] | null;
+            /**
+             * Limit
+             * @default 10
+             */
+            limit: number;
+        };
+        /** SearchResponse */
+        SearchResponse: {
+            /** Query */
+            query: string;
+            /** Hits */
+            hits: components["schemas"]["SearchHit"][];
         };
         /**
          * SpanOut
@@ -643,6 +713,57 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    search_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
