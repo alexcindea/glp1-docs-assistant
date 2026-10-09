@@ -1,7 +1,8 @@
 # Decisions
 
-One entry per non-obvious choice, newest first. Written in my own words; these
-become the "Key technical decisions" section of the README.
+One entry per non-obvious choice, newest first. Claude drafts each entry from the work
+and the measurements; I make the decisions and own the text. These become the "Key
+technical decisions" section of the README.
 
 Template:
 
@@ -16,7 +17,173 @@ Template:
 
 ---
 
+## 2026-10-09 — Embedding model: Qwen3-Embedding-0.6B, chosen by fused recall
+
+**Context:** The shortlist was bge-small-en-v1.5 and Qwen3-Embedding-0.6B. What matters is
+recall after fusion with BM25, not the model alone: a model that only re-finds what BM25 finds
+adds nothing, and can push BM25's correct hits down.
+**Options:** bge-small (33M parameters, 384 dims, MIT) · Qwen3-Embedding-0.6B (0.6B, 1024 dims,
+Apache-2.0) · bge-small with BM25 weighted higher in fusion
+**Decision:** Qwen3-Embedding-0.6B, pinned to a revision, run on CPU with transformers.
+**Why:** Measured on the 31 answerable gold questions (`evals/results/embedder-bakeoff.md`):
+BM25 alone recall@10 0.61; bge fused with BM25 0.52 at best (worse than BM25 alone); Qwen3
+fused 0.71 (chunk text) or 0.74 (section path + text). With bge, chunks both paths rank in
+the middle (the same section in another GLP-1 drug's label) pushed out the right chunk:
+"maximum dose of Ozempic" fell from BM25 rank 6 to 21. Weighting BM25 higher could at best
+match BM25 alone, and tuning weights on 31 questions would fit the test, not the problem.
+**Consequences:** About 0.5 s per chunk on this CPU (~1.8 s per page, against ~1.4 s to parse
+it): ingest time roughly doubles, ~45 min for the demo corpus once. ~2.4 GB of RAM in the API
+(it embeds questions) and in the worker; the images carry 1.2 GB of weights. A GPU or an ONNX
+export would cut both; the README's production notes say so. Changing the model needs a
+migration (vector size), which `app.providers` enforces at startup.
+
+## 2026-10-09 — Hybrid retrieval: BM25 + vectors, RRF k=60, 50 candidates per path
+
+**Context:** Retrieval must find passages that differ from their neighbours by one drug name,
+and passages phrased unlike the question.
+**Options:** vectors only · BM25 only · both, fused by reciprocal rank fusion (RRF) · both,
+fused by normalised scores
+**Decision:** Both. Each path returns 50 candidates; RRF merges them by rank (k = 60, the
+original paper's value, not tuned). What is indexed is the chunk's section path plus its text;
+the citeable text is stored unchanged. Vector search uses an HNSW index with `ef_search` raised
+to the candidate count and iterative scans on, so a document filter can't return too few rows.
+**Why:** The paths fail differently: BM25 finds scanned pages and exact names (scan 0.75,
+"printed page differs" 1.0, vectors 0.25 and 0.0 with bge) and vectors find paraphrases
+(follow-ups 1.0 vs 0.67). Ranks avoid comparing BM25 scores with cosine similarities. End to
+end (`evals/results/retrieval.md`): vector 0.60, BM25 0.65, fused 0.76 recall@10; fused
+recall@5 0.65. Indexing the section path helped bge's vector recall@5 from 0.32 to 0.42; with
+Qwen3 it gained a question at @10 (0.71 to 0.74) and lost one and a half at @5 (0.65 to 0.60),
+within noise on 31 questions, so I kept it for the larger top-10 gain and so both paths see the
+same text. Without the HNSW settings a test returned 41 of 60 rows, and none with a document
+filter. Two later fixes came from reading the misses: word-for-word repeats within a document
+are dropped after fusion (9 wasted top-10 places across the gold questions), and a table a page
+break cut off its header gets the first part's caption and header (see the chunking entry).
+Vector search only compares vectors from the running model (name and revision), so a corpus
+embedded by another model can't be ranked by noise; readiness warns about such chunks.
+**Consequences:** A search takes ~160 ms on the dev CPU: 130 ms to embed the question, 18 ms
+vector, 7 ms BM25. Recall@5 moves by about ±0.03 between runs, because BM25 orders tied scores
+by physical row order, which changes when rows are rewritten. Still missed: passages only one
+path finds at a middling rank (an RRF trade-off; a reranker would address it), long chunks from
+scanned pages, and the injection question, whose query is mostly attack text (phase 5 rewrites
+queries first). k and the candidate count stay at defaults unless a larger gold set justifies
+tuning.
+
+## 2026-10-09 — Chunking: sections as boundaries, ~300 tokens, tables by rows; parse once
+
+**Context:** Chunks are what retrieval finds and what answers cite, so each must be one coherent
+unit and every character must map back to a page and box.
+**Options:** fixed-size windows with overlap (simple, mixes sections, fuzzy citations) · Docling's
+HybridChunker (tied to one tokenizer, its own provenance format) · our own section-aware chunker
+**Decision:** Our own. Sections are hard boundaries; ~300 tokens, never over 450; no overlap.
+Tables are their own chunks, rebuilt from cells, split by rows with the header repeated, each
+part boxed by its own rows. The parse is stored, so re-chunking skips OCR.
+**Why:** Measured on the corpus: 4,952 chunks, median 104 tokens, none over 450. Re-chunking all
+18 documents takes 2.2 s against 25 minutes to parse, so chunking can be tuned without parsing
+again.
+**Consequences:** Many short chunks (labels have tiny sections). Sizes are words × 1.3, which
+undercounts real tokenizers by about 35% here (median 141 real tokens); harmless for Qwen3,
+which reads 1,024 tokens (14 of 4,955 chunks are longer), so the 450 cap now only keeps chunks
+small enough to cite precisely. Measuring recall in phase 4 led to two structural fixes: a
+heading that reads like a table caption becomes that table's caption, and a table a page break
+cut off its header gets the first part's caption and header, boxed on the page where they sit
+(99 of 584 tables start a page right after a same-width table; `sections-v5`).
+
+## 2026-10-09 — The ingest queue is a Postgres table; PDFs are stored in Postgres
+
+**Context:** Parsing takes seconds per page, so it runs in workers; nothing but Postgres may
+store data.
+**Options:** a Postgres job table claimed with FOR UPDATE SKIP LOCKED · Redis/Celery (ruled out
+by CLAUDE.md) · PDFs on a disk volume or object storage
+**Decision:** Job table with heartbeats; a job whose worker died is reclaimed when its heartbeat
+goes stale; one active job per document; unreadable PDFs fail at once, other failures retry with
+backoff. PDF bytes live in their own table.
+**Why:** One system to run and back up. Verified live: a worker killed mid-document was taken
+over by another and the document finished.
+**Consequences:** For production, PDFs belong in object storage (S3/GCS) and the queue scales
+with more workers; both are README points.
+
+## 2026-10-09 — Docling with RapidOCR, OCR only on scanned pages; OpenCV's LGPL FFmpeg accepted
+
+**Context:** Parsing must keep page and box for every block, read the 274 scanned pages, and stay
+within the no-copyleft rule.
+**Options:** Docling + RapidOCR (MIT / Apache-2.0, pip-only, CPU) · Docling + Tesseract (system
+install, awkward on Windows) · Docling + EasyOCR (slow on CPU)
+**Decision:** Docling + RapidOCR in the worker only, CPU PyTorch. OCR runs only on pages without a
+text layer. RapidOCR needs OpenCV, whose wheels bundle FFmpeg (LGPL) as a separate shared library.
+**Why:** Measured 1.3–2.7 s per text page and 4.3 s per scanned page. Docling's default install
+includes RapidOCR, so OpenCV comes with it either way; FFmpeg is unmodified and never called
+(video I/O). Unlike sharp, there is no free way around it.
+**Consequences:** Text inside images on pages that do have a text layer isn't read (packaging
+artwork on two Byetta label pages). Docling marks every heading level 1, so section depth comes
+from heading numbers.
+
+## 2026-10-09 — OpenAI for the LLM; embeddings stay local
+
+**Context:** I already have OpenAI credit. The plan said Claude (Anthropic) for answers, rewriting
+and the eval judge.
+**Options:** keep Anthropic · OpenAI for the LLM only · OpenAI for the LLM and embeddings
+**Decision:** OpenAI for the LLM only; models picked in phase 5. Embeddings stay local.
+**Why:** Every model call already goes through `LLMProvider` by role, so the switch is one adapter
+class and no feature code changes. Local embeddings keep retrieval free and eval scores
+reproducible, and the app still needs only one API key.
+**Consequences:** Citations come from our own mapping (the model returns passage ids in a strict
+output schema), not a provider's citation feature.
+
+## 2026-10-07 — Logs and traces: structlog plus OpenTelemetry, viewed in Phoenix
+
+**Context:** Every question must produce one trace (retrieval, model calls, tokens, cost).
+**Options:** Phoenix's own Python package (Elastic License) · plain OpenTelemetry SDK (Apache-2.0)
+**Decision:** structlog for logs, each line carrying its trace id; the plain OpenTelemetry SDK for
+traces, with FastAPI and SQLAlchemy instrumented. Phoenix runs only as a container. Tracing is off
+unless `OTEL_TRACES_ENDPOINT` is set, so tests and CI never need it.
+**Why:** No Elastic-licensed code in our dependencies, and any OTLP backend can replace Phoenix.
+**Consequences:** Model-call spans with tokens and cost come in phase 5.
+
+## 2026-10-07 — API types generated from OpenAPI and committed
+
+**Context:** The frontend must never hand-write API types.
+**Options:** generate at build time from a running API · export the schema without a server and
+commit the generated files · a heavier generator (orval, hey-api)
+**Decision:** Export the schema with a script, generate types with openapi-typescript, call the
+API through openapi-fetch (both MIT). Both files are committed; CI fails if they are stale.
+**Why:** Type changes show up in code review, and the web build never needs a running API.
+
+## 2026-10-07 — Model access behind interfaces, with fakes until phases 4 and 5
+
+**Context:** Tests and CI must run without an API key or a model download.
+**Options:** call the Anthropic SDK directly and mock it · one `LLMProvider` and one `Embedder`
+interface, with fakes now and real implementations later
+**Decision:** Interfaces. Feature code asks for a role (answer, rewrite, judge), never a model
+name, and every response carries token usage for cost tracking. The embedder embeds documents
+and queries separately (both candidate models prefix queries) and reports its vector size.
+**Consequences:** Real embedder in phase 4, Anthropic adapter in phase 5. Open question: a typed
+field for source passages, so document text can never be mixed into instructions.
+
+## 2026-10-07 — Database driver: asyncpg, not psycopg
+
+**Context:** psycopg, the usual Postgres driver, is LGPL-3.0, which breaks the no-copyleft rule.
+**Options:** asyncpg (Apache-2.0, async only) · psycopg 3 (LGPL) · pg8000 (BSD, slow)
+**Decision:** SQLAlchemy 2 async with asyncpg everywhere.
+**Why:** No licence question, and streaming answers are naturally async.
+**Consequences:** asyncpg raises some connection errors (wrong password, unknown database) that
+SQLAlchemy doesn't wrap; `app.db.DATABASE_ERRORS` handles them in one place.
+
+## 2026-10-07 — Database image: pgvector plus prebuilt pg_textsearch
+
+**Context:** We need Postgres 18 with vector search (pgvector) and BM25 (pg_textsearch); no
+official image has both.
+**Options:** small Dockerfile adding pg_textsearch's release package · compile from source
+(slow) · a vendor image like timescaledb-ha (several GB, adds a source-available licence)
+**Decision:** `services/db/Dockerfile`: pgvector 0.8.7 on Postgres 18.6 plus pg_textsearch 1.5.1,
+checksum-verified and preloaded through Postgres's default config. Used by compose, tests and CI.
+**Why:** Both use the PostgreSQL licence, and tests run against exactly what we ship. A test runs
+a real BM25 query, because a missing preload only fails at query time.
+**Consequences:** A managed Postgres (RDS, Cloud SQL) would need pg_textsearch; this matters for
+the productionising section of the README.
+
+
 ## 2026-10-07 — Demo documents: 18 FDA and EMA PDFs, listed in a pinned manifest
+
 **Context:** The app needs a realistic set of documents that makes retrieval and citations
 genuinely hard, without making setup slow for someone cloning the repo.
 **Options:** ~27 documents (more coverage, about twice the ingest time and test-writing effort) ·
