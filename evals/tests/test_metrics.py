@@ -3,15 +3,18 @@ from gold import Expected, GoldItem, load_gold
 from metrics import Hit, first_rank, quote_share, recall_at, score_item
 
 
-def item(*expected: Expected, history: list[str] | None = None) -> GoldItem:
-    return GoldItem(
-        id="q",
-        question="What?",
-        history=history or [],
-        answerable=bool(expected),
-        expected=list(expected),
-        reference_answer=None,
-        tags=["fact"],
+def item(*expected: Expected, history: list[str] | None = None, match: str = "all") -> GoldItem:
+    return GoldItem.model_validate(
+        {
+            "id": "q",
+            "question": "What?",
+            "history": history or [],
+            "answerable": bool(expected),
+            "expected": list(expected),
+            "reference_answer": None,
+            "tags": ["fact"],
+            "match": match,
+        }
     )
 
 
@@ -71,6 +74,17 @@ def test_recall_counts_each_expected_passage() -> None:
     assert result.recall_at(5) == 0.0
     assert result.recall_at(10) == 0.5
     assert recall_at([result, score_item(item(DOSE), [Hit("label", DOSE.quote)])], 10) == 0.75
+
+
+def test_alternative_passages_count_as_found_when_any_one_is() -> None:
+    patient_leaflet = Expected(doc_id="label", page=19, quote="Throw away the pen after 30 days.")
+    question = item(DOSE, patient_leaflet, match="any")
+
+    result = score_item(question, [Hit("x", "noise")] * 3 + [Hit("label", patient_leaflet.quote)])
+
+    assert result.ranks == (None, 4)
+    assert result.recall_at(5) == 1.0
+    assert result.recall_at(3) == 0.0
 
 
 def test_unanswerable_items_are_not_scored_for_recall() -> None:

@@ -15,8 +15,9 @@ The page in the gold item is not required to match: the same sentence on
 another page of the same document is still the right evidence. (Labels repeat
 text between the highlights and the full prescribing information.)
 
-recall@k for one question = share of its expected passages found in the top k;
-for the set = mean over answerable questions. Unanswerable questions have no
+recall@k for one question = share of its expected passages found in the top k,
+or, for a question whose passages are alternatives (`match: any`), 1 if any of
+them is; for the set = mean over answerable questions. Unanswerable questions have no
 passages and belong to the refusal metrics (phase 5), not to recall.
 """
 
@@ -95,9 +96,13 @@ class ItemResult:
     id: str
     tags: tuple[str, ...]
     ranks: tuple[int | None, ...]  # one per expected passage
+    match: str = "all"  # "any": the passages are alternatives
 
     def recall_at(self, k: int) -> float:
-        return sum(rank is not None and rank <= k for rank in self.ranks) / len(self.ranks)
+        found = [rank is not None and rank <= k for rank in self.ranks]
+        if self.match == "any":
+            return float(any(found))
+        return sum(found) / len(found)
 
 
 def score_item(item: GoldItem, hits: Sequence[Hit]) -> ItemResult:
@@ -107,6 +112,7 @@ def score_item(item: GoldItem, hits: Sequence[Hit]) -> ItemResult:
         id=item.id,
         tags=tuple(item.tags),
         ranks=tuple(first_rank(expected, hits) for expected in item.expected),
+        match=item.match,
     )
 
 

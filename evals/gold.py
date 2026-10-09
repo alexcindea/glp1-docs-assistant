@@ -7,6 +7,7 @@ here filters, rewrites or skips items.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -29,6 +30,9 @@ class GoldItem(BaseModel):
     history: list[str]
     answerable: bool
     expected: list[Expected]
+    # "all": every passage is needed (a comparison needs both sides). "any": each one
+    # answers the question on its own (a label states the same fact in several places).
+    match: Literal["all", "any"] = "all"
     reference_answer: str | None
     tags: list[str]
 
