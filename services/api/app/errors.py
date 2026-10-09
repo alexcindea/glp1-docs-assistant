@@ -20,6 +20,21 @@ class ErrorResponse(BaseModel):
     details: list[str] = []
 
 
+class ApiError(Exception):
+    """An expected failure with a stable `code` the client can act on."""
+
+    def __init__(self, status_code: int, code: str, message: str) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+
+
+def error_responses(*status_codes: int) -> dict[int | str, dict[str, Any]]:
+    """OpenAPI entries for a route's own error statuses, all with the ErrorResponse shape."""
+    return {code: {"model": ErrorResponse} for code in status_codes}
+
+
 # Added to every route in the OpenAPI schema, replacing FastAPI's default 422 model,
 # so the generated frontend types know the error shape.
 ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -39,6 +54,12 @@ async def _http_error(request: Request, exc: Exception) -> JSONResponse:
         return await _unhandled(request, exc)
     code = HTTPStatus(exc.status_code).phrase.lower().replace(" ", "_")
     return _error(exc.status_code, ErrorResponse(code=code, message=str(exc.detail)), exc.headers)
+
+
+async def _api_error(request: Request, exc: Exception) -> JSONResponse:
+    if not isinstance(exc, ApiError):  # registered for ApiError only
+        return await _unhandled(request, exc)
+    return _error(exc.status_code, ErrorResponse(code=exc.code, message=exc.message))
 
 
 async def _validation_error(request: Request, exc: Exception) -> JSONResponse:
@@ -63,6 +84,7 @@ async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
 
 
 def register_error_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(ApiError, _api_error)
     app.add_exception_handler(HTTPException, _http_error)
     app.add_exception_handler(RequestValidationError, _validation_error)
     app.add_exception_handler(Exception, _unhandled)

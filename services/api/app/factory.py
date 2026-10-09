@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from opentelemetry.sdk.trace import TracerProvider
 
-from app import health
+from app import documents, health
 from app.config import Settings, get_settings
-from app.db import create_engine, migration_head
+from app.db import create_engine, create_sessionmaker, migration_head
 from app.errors import ERROR_RESPONSES, register_error_handlers
 from app.observability import instrument_app, instrument_engine, uninstrument_engines
 from app.providers import build_embedder, build_llm_provider
@@ -31,7 +31,9 @@ def create_app(
         if tracer_provider:
             instrument_engine(engine, tracer_provider)
         app.state.resources = AppState(
+            settings=settings,
             engine=engine,
+            sessions=create_sessionmaker(engine),
             expected_revision=migration_head(),
             llm=build_llm_provider(settings),
             embedder=build_embedder(settings),
@@ -52,6 +54,11 @@ def create_app(
     )
     register_error_handlers(app)
     app.include_router(health.router)
+    app.include_router(documents.router)
+    app.add_middleware(
+        documents.UploadSizeLimit,
+        max_bytes=documents.upload_limit_bytes(settings.max_upload_mb),
+    )
     if tracer_provider:
         instrument_app(app, tracer_provider)
     return app
