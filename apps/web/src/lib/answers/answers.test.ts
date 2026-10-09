@@ -125,6 +125,11 @@ describe("chat turns", () => {
     const streaming = play([{ kind: "sources", query: "q", passages: [] }]);
 
     expect(endTurn(streaming, "stopped").status).toBe("stopped");
+    const halfAnswered = applyEvent(streaming, {
+      kind: "delta",
+      text: "It is 2 mg [1]",
+    });
+    expect(endTurn(halfAnswered, "stopped").text).toBe(""); // never checked: not kept
     expect(
       endTurn(streaming, { code: "network", message: "Lost connection." })
         .status,

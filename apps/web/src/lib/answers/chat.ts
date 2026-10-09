@@ -67,14 +67,19 @@ export function applyEvent(turn: Turn, event: AnswerEvent): Turn {
   }
 }
 
-/** The turn when the stream broke off without an ending: stopped by the user, or failed. */
+/**
+ * The turn when the stream broke off without an ending: stopped by the user,
+ * or failed. Either way, the unchecked text is dropped.
+ */
 export function endTurn(
   turn: Turn,
   reason: "stopped" | { code: string; message: string },
 ): Turn {
   if (turn.status !== "searching" && turn.status !== "answering") return turn;
-  if (reason === "stopped") return { ...turn, status: "stopped" };
-  return { ...turn, status: "failed", error: reason };
+  // Text that streamed before a stop was never checked by the API: it may cite
+  // nothing, or cite numbers the API would drop. It is not kept as an answer.
+  if (reason === "stopped") return { ...turn, status: "stopped", text: "" };
+  return { ...turn, status: "failed", error: reason, text: "" };
 }
 
 export const HISTORY_TURNS = 5;

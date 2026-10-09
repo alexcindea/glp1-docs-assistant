@@ -116,17 +116,9 @@ function TurnBody({ turn, selected, onSelect, onRetry, onEvidence }: Props) {
       );
     case "stopped":
       return (
-        <div className="space-y-1">
-          {turn.text && (
-            <AnswerText
-              text={turn.text}
-              passageCount={turn.sources.length}
-              selected={selected}
-              onCite={onSelect}
-            />
-          )}
-          <p className="text-muted-foreground text-xs">Stopped.</p>
-        </div>
+        <p className="text-muted-foreground text-sm" role="status">
+          Stopped before the answer was checked, so nothing from it is shown.
+        </p>
       );
   }
 }
