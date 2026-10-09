@@ -1,7 +1,7 @@
 """The single interface every model call goes through.
 
 Feature code asks for a model *role* (answer, rewrite, judge) and never imports
-a vendor SDK. The real Anthropic implementation lands with grounded answers;
+a vendor SDK. The real OpenAI implementation lands with grounded answers;
 until then, and always in unit tests and CI, the fake below is used.
 """
 
@@ -13,9 +13,9 @@ from pydantic import BaseModel
 
 
 class ModelRole(StrEnum):
-    ANSWER = "answer"  # grounded answers (Sonnet)
-    REWRITE = "rewrite"  # follow-up question -> standalone query (Haiku)
-    JUDGE = "judge"  # eval judge (Opus)
+    ANSWER = "answer"  # grounded answers (strong model)
+    REWRITE = "rewrite"  # follow-up question -> standalone query (small, fast model)
+    JUDGE = "judge"  # eval judge (strong model)
 
 
 class Message(BaseModel):

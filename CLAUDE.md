@@ -27,7 +27,7 @@ The project brief is in `ASSIGNMENT.md`. Read it once. Two consequences:
 4. **No copyleft or restricted-weight dependencies.** No AGPL/GPL packages (this rules out
    PyMuPDF, pymupdf4llm, pg_search, Marker/Surya weights). Check the licence of any new dependency
    and of any model weights it downloads.
-5. **One API key to run it.** Anthropic only. Embeddings run locally.
+5. **One API key to run it.** OpenAI only, for the LLM. Embeddings run locally.
 
 ## Stack — do not substitute without asking
 
@@ -41,9 +41,10 @@ The project brief is in `ASSIGNMENT.md`. Read it once. Two consequences:
   stored twice: Markdown for retrieval, JSON cells with row/column boxes for display.
 - **Database:** Postgres 18 + pgvector + pg_textsearch (BM25). Nothing else stores data.
 - **Retrieval:** vector + BM25, fused with reciprocal rank fusion.
-- **LLM:** Claude behind a single `LLMProvider` interface. Sonnet for answers, Haiku for rewriting
-  follow-up questions into standalone queries, Opus as the eval judge. Feature code never imports
-  the Anthropic SDK directly.
+- **LLM:** OpenAI behind a single `LLMProvider` interface, addressed by role: a strong model for
+  answers, a small fast one for rewriting follow-up questions into standalone queries, a strong
+  one as the eval judge (exact models chosen in phase 5 from OpenAI's current lineup). Feature code
+  never imports the OpenAI SDK directly.
 - **Embeddings:** local model behind an `Embedder` interface. Final model chosen by recall on our
   gold set (shortlist: bge-small-en-v1.5, Qwen3-Embedding-0.6B).
 - **Orchestration:** our own thin code. No LangChain, no LlamaIndex.
@@ -104,10 +105,11 @@ uv run python evals/run.py               # eval suite
 
 - **Plan before code.** For anything beyond a small fix: explore, propose a plan, wait for my
   approval. Stop at the checkpoint I name and show me something that runs.
-- **Who writes what.** You write boilerplate and plumbing: Docker, CI, config, migrations, UI
-  components, API scaffolding. I write the core logic by hand: chunking, RRF fusion, citation
-  mapping, refusal logic, eval metrics. For those, explain and review; don't write the code unless
-  I say "write it".
+- **Who writes what.** You write all the code, including the core logic: chunking, RRF fusion,
+  citation mapping, refusal logic, eval metrics. I direct, decide and review. For core logic,
+  explain the design and its trade-offs so I can defend it, and keep the README and
+  `docs/ai-usage.md` accurate about who wrote what. (Changed 2026-10-09; until then I was to write
+  the core logic by hand.)
 - **Decisions.** Every non-obvious choice gets a dated entry in `docs/decisions.md`: what was
   chosen, what was rejected, why. Propose the entry; I edit it into my own words.
 - **AI usage log.** When you propose something I reject, or get something wrong that I catch, note
@@ -128,7 +130,7 @@ uv run python evals/run.py               # eval suite
 - A hook formats and lints every file you edit. If it reports lint errors, fix them before moving on.
 - Use the Playwright MCP server, when available, to check UI work in a real browser and show me a
   screenshot rather than describing what the page should look like.
-- `evals/gold.jsonl` is ground truth written by me. Never edit it, and never change code so that a
+- `evals/gold.jsonl` is the ground truth (drafted by Claude, owned by me). Never edit it, and never change code so that a
   gold question is skipped. If a gold item looks wrong, tell me.
 
 ## Code standards
@@ -159,4 +161,4 @@ advice. Compare mode is a stretch goal — do not start it before the core is fi
 7. Evals and hardening: judge calibrated against my labels, citation and refusal metrics, tests
 8. Write-up: README in my own words, screenshots, video, demo deploy
 
-**Current phase: 2**
+**Current phase: 3**
