@@ -45,8 +45,9 @@ and passages phrased unlike the question.
 fused by normalised scores
 **Decision:** Both. Each path returns 50 candidates; RRF merges them by rank (k = 60, the
 original paper's value, not tuned). What is indexed is the chunk's section path plus its text;
-the citeable text is stored unchanged. Vector search uses an HNSW index with `ef_search` raised
-to the candidate count and iterative scans on, so a document filter can't return too few rows.
+the citeable text is stored unchanged. Searching the whole corpus uses an HNSW index with
+`ef_search` raised to the candidate count; searching chosen documents is exact (their chunks are
+read and every distance computed), because the approximate index can miss a chunk entirely.
 **Why:** The paths fail differently: BM25 finds scanned pages and exact names (scan 0.75,
 "printed page differs" 1.0, vectors 0.25 and 0.0 with bge) and vectors find paraphrases
 (follow-ups 1.0 vs 0.67). Ranks avoid comparing BM25 scores with cosine similarities. End to
@@ -55,8 +56,9 @@ recall@5 0.68 (0.76 and 0.65 before q004 accepted the label's other statements o
 fact; see the AI usage log). Indexing the section path helped bge's vector recall@5 from 0.32 to 0.42; with
 Qwen3 it gained a question at @10 (0.71 to 0.74) and lost one and a half at @5 (0.65 to 0.60),
 within noise on 31 questions, so I kept it for the larger top-10 gain and so both paths see the
-same text. Without the HNSW settings a test returned 41 of 60 rows, and none with a document
-filter. Two later fixes came from reading the misses: word-for-word repeats within a document
+same text. Without the HNSW settings a test returned 41 of 60 rows. A filtered search through
+the index once returned nothing in CI (a vector the graph couldn't reach), so filtered searches
+skip the index; the largest document has ~1,200 chunks, a few milliseconds to scan. Two later fixes came from reading the misses: word-for-word repeats within a document
 are dropped after fusion (9 wasted top-10 places across the gold questions), and a table a page
 break cut off its header gets the first part's caption and header (see the chunking entry).
 Vector search only compares vectors from the running model (name and revision), so a corpus

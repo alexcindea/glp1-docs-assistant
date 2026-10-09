@@ -24,6 +24,11 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-09 · first CI run of phase 4 · two failures local runs never showed: the runner ran
+  out of disk building images that now carry PyTorch and the models, and a vector search
+  limited to one document returned nothing, because the approximate HNSW index can leave a
+  vector unreachable (Claude's earlier fix, iterative scans, doesn't help with that) · filtered
+  searches are now exact over the chosen documents' chunks; CI frees disk space first.
 - 2026-10-09 · Claude flagged gold item q004 as too strict: it accepted only one sentence
   ("The pen should be discarded 30 days after first use"), while the same label says it twice
   more (patient information p19, pen instructions p22), and retrieval was finding those · I
