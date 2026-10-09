@@ -5,9 +5,9 @@ message, inside numbered <passage> blocks, and the system message tells the
 model that nothing inside them is an instruction. Two things keep a passage
 from escaping its block:
 
-- text that would open or close a <passage> or <sources> tag is defused (its
-  "<" becomes a look-alike quote mark), so a document can't end its own block
-  and start talking as the user;
+- text that would open or close one of our tags (<passage>, <sources>, and the
+  conversation tags of app.rewrite) is defused: its "<" becomes a look-alike
+  quote mark, so a document can't end its own block and talk as the user;
 - attribute values (file name, section, which come from uploads too) lose
   quotes, "<" and line breaks.
 
@@ -31,7 +31,8 @@ ANSWER_MAX_TOKENS = 4000
 SYSTEM_PROMPT = f"""\
 You answer questions about a collection of drug regulatory documents (labels, \
 approval letters, reviews, assessment reports). The user message holds numbered \
-source passages from those documents inside <sources>, then the question.
+source passages from those documents inside <sources>, then the question. A \
+follow-up question also comes in full, rewritten from the conversation; answer that.
 
 Rules:
 1. Answer only from the passages. Do not add facts from your own knowledge, even \
@@ -56,14 +57,25 @@ When passages from different documents or drugs differ, say which document says 
 
 # Reads like "<" to the model, but closes no tag.
 _LOOKALIKE_LT = "\N{SINGLE LEFT-POINTING ANGLE QUOTATION MARK}"
-_TAG = re.compile(r"<(?=\s*/?\s*(?:passage|sources)\b)", re.IGNORECASE)
+# Every tag our prompts use (here and in app.rewrite).
+_TAG = re.compile(
+    r"<(?=\s*/?\s*(?:passage|sources|conversation|turn|question|answer)\b)", re.IGNORECASE
+)
 _ATTRIBUTE_UNSAFE = re.compile(r"[\"<\r\n]+")  # what could end an attribute or open a tag
 
 
-def build_answer_request(question: str, passages: Sequence[SearchHit]) -> CompletionRequest:
-    """The model call for `question`. Passage n (1-based) is `passages[n - 1]`."""
+def build_answer_request(
+    question: str, passages: Sequence[SearchHit], in_full: str | None = None
+) -> CompletionRequest:
+    """The model call for `question`. Passage n (1-based) is `passages[n - 1]`.
+
+    `in_full` is the question rewritten as a standalone one (app.rewrite), when
+    that differs from what was asked.
+    """
     # The question is defused too: a user can't fake a passage for the model to cite.
     user = f"{format_sources(passages)}\n\nQuestion: {defuse(question)}"
+    if in_full and in_full != question:
+        user += f"\nThe question in full: {defuse(in_full)}"
     return CompletionRequest(
         role=ModelRole.ANSWER,
         system=SYSTEM_PROMPT,

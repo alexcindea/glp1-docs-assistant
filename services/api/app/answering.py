@@ -2,7 +2,7 @@
 
 One question produces a stream of events:
 
-    sources  the passages the model sees, numbered from 1 in list order
+    sources  the search query and the passages the model sees, numbered from 1
     delta    a piece of answer text, as it arrives (any number of these)
     done     the checked answer and its citations, or a refusal; tokens, cost, timings
     error    instead of done: the model call failed or was cut off, or something
@@ -18,6 +18,10 @@ Refusal is decided in three places (see app.citations for the details):
    streamed by then; `done` says it is refused, and clients replace it.
 
 A refusal always carries the closest passages, so the user can look themselves.
+
+Before searching, a follow-up question is rewritten into a standalone query
+(app.rewrite), and with QUERY_REWRITE=always every question is. The answer
+model sees the question as asked and, when it differs, the rewritten one.
 
 The question's work runs in its own task and reaches the caller through a
 queue. Spans opened in that task are opened and closed without a `yield` in
@@ -45,6 +49,9 @@ from app.llm import Completion, LLMError, LLMProvider, StreamEnd
 from app.passages import SearchHit, load_hits
 from app.pricing import cost_usd
 from app.retrieval import retrieve
+from app.rewrite import Turn, standalone_query
+
+RewritePolicy = Literal["follow_ups", "always"]
 
 logger = structlog.get_logger(__name__)
 tracer = trace.get_tracer(__name__)
@@ -97,6 +104,7 @@ class AnswerUsage(BaseModel):
 
 
 class Timings(BaseModel):
+    rewrite_ms: float | None  # None when the question was searched as asked
     retrieval_ms: float
     first_token_ms: float | None  # from the question to the first answer text shown
     total_ms: float
@@ -118,7 +126,7 @@ class DoneEvent(BaseModel):
     answer: str  # with normalised [n] markers; "" when refused
     citations: list[Citation]
     refusal: Refusal | None
-    model: str | None  # None when no model was called
+    model: str | None  # the answer model; None when it wasn't called
     usage: AnswerUsage
     timings: Timings
 
@@ -147,7 +155,9 @@ async def answer_question(
     llm: LLMProvider,
     question: str,
     *,
+    history: Sequence[Turn] = (),
     document_ids: Sequence[uuid.UUID] | None = None,
+    rewrite: RewritePolicy = "follow_ups",
 ) -> AsyncGenerator[Event]:
     """The events for one question, ending with exactly one `done` or `error`.
 
@@ -157,7 +167,9 @@ async def answer_question(
 
     async def run() -> None:
         try:
-            await _answer(session, embedder, llm, question, document_ids, queue.put)
+            await _answer(
+                session, embedder, llm, question, history, document_ids, rewrite, queue.put
+            )
         except Exception:
             # Database, embedder or a bug: the client still gets a typed ending.
             logger.exception("answer.failed")
@@ -181,7 +193,9 @@ async def _answer(
     embedder: Embedder,
     llm: LLMProvider,
     question: str,
+    history: Sequence[Turn],
     document_ids: Sequence[uuid.UUID] | None,
+    rewrite: RewritePolicy,
     emit: Callable[[Event], Awaitable[None]],
 ) -> None:
     started = time.perf_counter()
@@ -195,14 +209,19 @@ async def _answer(
                 "openinference.span.kind": "CHAIN",
                 "input.value": question,
                 "answer.document_filter": len(document_ids) if document_ids else 0,
+                "answer.history_turns": len(history),
             }
         )
-        fused = await retrieve(
-            session, embedder, question, limit=PASSAGES, document_ids=document_ids
-        )
+        query, rewrite_ms, rewritten = question, None, None
+        if history or rewrite == "always":
+            query, rewritten = await standalone_query(llm, question, history)
+            rewrite_ms = since_start()
+        span.set_attribute("answer.search_query", query)
+        searching = time.perf_counter()
+        fused = await retrieve(session, embedder, query, limit=PASSAGES, document_ids=document_ids)
         passages = await load_hits(session, fused)
-        retrieval_ms = since_start()
-        await emit(SourcesEvent(query=question, passages=passages))
+        retrieval_ms = (time.perf_counter() - searching) * 1000
+        await emit(SourcesEvent(query=query, passages=passages))
 
         completion: Completion | None = None
         first_token_ms: float | None = None
@@ -212,7 +231,8 @@ async def _answer(
             received = ""
             start: Literal["undecided", "refusal", "answer"] = "undecided"
             try:
-                async for event in llm.stream(build_answer_request(question, passages)):
+                request = build_answer_request(question, passages, in_full=query)
+                async for event in llm.stream(request):
                     if isinstance(event, StreamEnd):
                         completion = event.completion
                         continue
@@ -244,9 +264,13 @@ async def _answer(
                 logger.warning("answer.invalid_citations", numbers=checked.invalid)
 
         timings = Timings(
-            retrieval_ms=retrieval_ms, first_token_ms=first_token_ms, total_ms=since_start()
+            rewrite_ms=rewrite_ms,
+            retrieval_ms=retrieval_ms,
+            first_token_ms=first_token_ms,
+            total_ms=since_start(),
         )
-        done = _done(passages, checked, completion, timings)
+        calls = [c for c in (rewritten, completion) if c is not None]
+        done = _done(passages, checked, completion, calls, timings)
         _record(span, done)
         await emit(done)
 
@@ -255,6 +279,7 @@ def _done(
     passages: list[SearchHit],
     checked: CheckedAnswer,
     completion: Completion | None,
+    calls: list[Completion],
     timings: Timings,
 ) -> DoneEvent:
     refusal = (
@@ -271,7 +296,7 @@ def _done(
         citations=[] if refusal else [_citation(n, passages[n - 1]) for n in checked.cited],
         refusal=refusal,
         model=completion.model if completion else None,
-        usage=_usage([completion] if completion else []),
+        usage=_usage(calls),
         timings=timings,
     )
 

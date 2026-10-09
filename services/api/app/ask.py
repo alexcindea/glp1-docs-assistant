@@ -2,6 +2,7 @@
 
     cd services/api; uv run python -m app.ask "What is the maximum dose of Ozempic?"
     uv run python -m app.ask --document <uuid> "..."   # only in these documents
+    uv run python -m app.ask --previous "What's the maximum dose of Ozempic?" "And Mounjaro?"
 
 Uses the settings in .env: LLM_PROVIDER=openai and OPENAI_API_KEY for real
 answers, EMBEDDER set to the model the corpus was embedded with. Prints the
@@ -26,6 +27,7 @@ from app.local_embedder import TransformersEmbedder
 from app.observability import configure_logging, create_tracer_provider
 from app.passages import SearchHit
 from app.providers import build_embedder, build_llm_provider
+from app.rewrite import Turn
 
 
 def _where(hit: SearchHit) -> str:
@@ -33,7 +35,7 @@ def _where(hit: SearchHit) -> str:
     return f"{hit.filename} p.{pages(hit)} | {section}"
 
 
-async def ask(question: str, document_ids: list[uuid.UUID] | None) -> int:
+async def ask(question: str, previous: list[str], document_ids: list[uuid.UUID] | None) -> int:
     settings = get_settings()
     embedder = build_embedder(settings)
     if isinstance(embedder, TransformersEmbedder):
@@ -49,10 +51,18 @@ async def ask(question: str, document_ids: list[uuid.UUID] | None) -> int:
     try:
         async with create_sessionmaker(engine)() as session:
             async for event in answer_question(
-                session, embedder, llm, question, document_ids=document_ids
+                session,
+                embedder,
+                llm,
+                question,
+                history=[Turn(question=q) for q in previous],
+                document_ids=document_ids,
+                rewrite=settings.query_rewrite,
             ):
                 match event:
-                    case SourcesEvent(passages=passages):
+                    case SourcesEvent(query=query, passages=passages):
+                        if query != question:
+                            print(f"searched for: {query}")
                         print(f"\n{len(passages)} passages:")
                         for n, hit in enumerate(passages, 1):
                             print(f"  [{n}] {_where(hit)}")
@@ -98,6 +108,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ask the documents one question.")
     parser.add_argument("question")
     parser.add_argument("--document", type=uuid.UUID, action="append", dest="documents")
+    parser.add_argument(
+        "--previous", action="append", default=[], help="an earlier question (repeatable)"
+    )
     args = parser.parse_args()
     if isinstance(sys.stdout, io.TextIOWrapper):
         sys.stdout.reconfigure(encoding="utf-8")  # PDFs hold "≥", "µ"; Windows pipes are cp1252
@@ -108,7 +121,7 @@ def main() -> None:
     if provider:
         trace.set_tracer_provider(provider)
     try:
-        status = asyncio.run(ask(args.question, args.documents))
+        status = asyncio.run(ask(args.question, args.previous, args.documents))
     finally:
         if provider:
             provider.shutdown()  # send the trace before exiting

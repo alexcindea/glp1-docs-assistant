@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     llm_rewrite_effort: ReasoningEffort = "none"
     llm_judge_model: str = "gpt-6-astra"
     llm_judge_effort: ReasoningEffort = "medium"
+    # Rewrite questions into standalone search queries: only follow-ups, or all.
+    query_rewrite: Literal["follow_ups", "always"] = "follow_ups"
 
     # Uploads
     max_upload_mb: int = 100
