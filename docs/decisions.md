@@ -17,6 +17,60 @@ Template:
 
 ---
 
+## 2026-10-10 — PDF viewer: one page at a time, highlights drawn from stored boxes
+
+**Context:** Every citation must open its page with the passage highlighted, on text pages,
+scanned pages and the odd rotated page, fast enough to feel instant.
+**Options:** react-pdf (pdf.js) showing one page at a time, our boxes drawn over it ·
+continuous scroll through every page · searching pdf.js's text layer for the quoted text
+**Decision:** One page at a time, fit to the panel, with zoom and page navigation. Each span's
+stored box (0-1, top-left origin, measured on the page as displayed) becomes a box positioned
+by percentage over the rendered page. A click jumps to the passage's first page and scrolls
+the highlight into view. pdf.js's image decoders and fonts are served from `public/pdfjs`,
+copied from the pinned `pdfjs-dist` at dev and build time.
+**Why:** The boxes come from ingestion, so highlighting needs no text matching, works the same
+on OCR'd scans (which have no text layer to search) and stays aligned at any zoom. Checked on
+text pages, scanned review pages and the corpus's two rotated pages. Measured over 33 gold
+questions, each in a fresh page, production build: **533 ms median** from click to highlight,
+639 ms p95, PDF download included. Without the JBIG2 decoder, scanned review pages rendered
+blank.
+**Consequences:** Long documents can't be scrolled through continuously; a "Passage on p. 4 ·
+p. 5" switch covers passages across a page break. A thin one-line highlight is easy to miss
+at full-page size. `pdfjs-dist` is pinned to react-pdf's version (the worker must match), and
+upgrading react-pdf means upgrading both.
+
+## 2026-10-10 — The browser reaches the API only through the web app
+
+**Context:** The browser needs the API (answers, documents, files, feedback); the API had no
+CORS and was meant to stay internal.
+**Options:** a pass-through route in Next (`/api/...`) · CORS and a public API address · Next
+rewrites
+**Decision:** A catch-all route handler that forwards an allow-list of API routes, streaming
+request and response bodies, dropping per-connection headers, aborting the upstream request
+when the browser leaves, and marking event streams `no-transform`.
+**Why:** One origin and an unexposed API, without CORS. Rewrites can't add `no-transform`,
+and `next start` gzips responses, which would hold an event stream back until the end.
+Checked on the production server: no compression on the stream, deltas arriving from 1.8 s
+to the end at 3.9 s.
+**Consequences:** One extra hop (a few ms). Uploads pass through Next too, so a proxy in
+front needs the same size limit as the API.
+
+## 2026-10-10 — Chat state lives in the page; the stream is read by our own SSE reader
+
+**Context:** Answers stream as server-sent events from a POST; the brief needs no saved
+conversations.
+**Options:** our own reader over `fetch` · `@microsoft/fetch-event-source` (MIT, barely
+maintained) · the Vercel AI SDK · a conversations table and API
+**Decision:** A ~50-line reader over `fetch` (8 tests: chunks split mid-character and
+mid-CRLF, keep-alive pings, cancelling). Each turn is built from events by a pure reducer; the
+final event's checked answer replaces the streamed text. The conversation lives in the page,
+and the last five finished turns go with each question as history. Feedback is saved per
+answer.
+**Why:** `EventSource` can't POST, and the reader is small enough to own. A reducer over
+events is easy to test. Saved answers already give feedback something to attach to.
+**Consequences:** A refresh starts a new conversation. Citation chips show the passage's own
+number (e.g. 6 of 10), so they match the evidence panel, rather than being renumbered 1, 2, 3.
+
 ## 2026-10-09 — Answer eval: scored on evidence; wording left to the judge
 
 **Context:** Phase 5 needs a number for whole answers, before the LLM judge exists (phase 7).

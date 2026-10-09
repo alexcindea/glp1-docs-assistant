@@ -24,6 +24,26 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-10 · Claude checked the UI in a real browser (Playwright screenshots) rather than
+  trusting tests · it found that scanned review pages rendered blank in the PDF viewer (pdf.js
+  6 needs separate decoders for JBIG2 images) · the decoders are now served with the app;
+  their licences were checked (BSD and MIT) before shipping them.
+- 2026-10-10 · the same checks found that the web Docker image never copied `public/`, which
+  the decoders need, and that the production server gzips responses, which would hold back a
+  streamed answer · both fixed and checked on a production build, not only in dev mode.
+- 2026-10-10 · a highlight on one of the corpus's two rotated pages looked missing · Claude
+  measured the drawn boxes and zoomed in before changing anything: it was there and aligned,
+  only thin · no change.
+- 2026-10-10 · Claude caught its own bug in the chat hook: the conversation history was read
+  inside a React state update, so every follow-up would have been sent without history ·
+  fixed before the first browser test.
+- 2026-10-10 · one of Claude's commits deleted a component the app still imported until the
+  next commit, so it didn't build on its own · Claude noticed when reviewing the commit
+  contents and redid both (local, unpushed) commits.
+- 2026-10-10 · the end-to-end test needed an ingest worker, so it uploaded a test PDF into my
+  development database · Claude deleted that document afterwards so the 18-document corpus and
+  the evals stayed as they were.
+
 - 2026-10-09 · first answer eval · three answerable questions failed although their answers
   were right: the model cited the same fact stated elsewhere (Trulicity strengths in the review's
   header table, 44% antibodies in the review's safety section, Mounjaro's maximum dose in the
