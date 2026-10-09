@@ -98,7 +98,9 @@ cd services/api; uv run pytest            # needs Docker running
 cd services/api; uv run ruff check .; uv run mypy .
 cd apps/web; pnpm lint; pnpm typecheck; pnpm test
 uvx pre-commit run --all-files
-uv run python evals/run.py               # eval suite
+uv run python evals/run.py               # retrieval eval: recall@5/@10 per path (needs the ingested corpus)
+uv run pytest evals                      # eval harness tests (from the repo root)
+uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
 ```
 
 ## Working agreement
@@ -161,4 +163,4 @@ advice. Compare mode is a stretch goal — do not start it before the core is fi
 7. Evals and hardening: judge calibrated against my labels, citation and refusal metrics, tests
 8. Write-up: README in my own words, screenshots, video, demo deploy
 
-**Current phase: 3**
+**Current phase: 4**
