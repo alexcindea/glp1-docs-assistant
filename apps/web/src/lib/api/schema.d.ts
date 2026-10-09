@@ -135,6 +135,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer */
+        post: operations["answer_answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -151,6 +168,46 @@ export interface components {
             pages_done: number;
             /** Pages Total */
             pages_total: number;
+        };
+        /** AnswerRequest */
+        AnswerRequest: {
+            /** Question */
+            question: string;
+            /** History */
+            history?: components["schemas"]["Turn"][];
+            /** Document Ids */
+            document_ids?: string[] | null;
+        };
+        /**
+         * AnswerUsage
+         * @description Every model call for the question, summed.
+         */
+        AnswerUsage: {
+            /**
+             * Input Tokens
+             * @default 0
+             */
+            input_tokens: number;
+            /**
+             * Cached Input Tokens
+             * @default 0
+             */
+            cached_input_tokens: number;
+            /**
+             * Output Tokens
+             * @default 0
+             */
+            output_tokens: number;
+            /**
+             * Reasoning Tokens
+             * @default 0
+             */
+            reasoning_tokens: number;
+            /**
+             * Cost Usd
+             * @default 0
+             */
+            cost_usd: number | null;
         };
         /** Body_upload_document_documents_post */
         Body_upload_document_documents_post: {
@@ -180,6 +237,35 @@ export interface components {
             /** Spans */
             spans: components["schemas"]["SpanOut"][];
         };
+        /**
+         * Citation
+         * @description Passage `n` of the sources, and where to highlight it.
+         */
+        Citation: {
+            /** N */
+            n: number;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Filename */
+            filename: string;
+            /** Chunk Id */
+            chunk_id: number;
+            /** Section Path */
+            section_path: string[];
+            /** Page Start */
+            page_start: number;
+            /** Page End */
+            page_end: number;
+            /** Char Start */
+            char_start: number;
+            /** Char End */
+            char_end: number;
+            /** Spans */
+            spans: components["schemas"]["SpanOut"][];
+        };
         /** DatabaseStatus */
         DatabaseStatus: {
             /** Reachable */
@@ -200,6 +286,16 @@ export interface components {
              * @default []
              */
             problems: string[];
+        };
+        /** DeltaEvent */
+        DeltaEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "delta";
+            /** Text */
+            text: string;
         };
         /** DocumentOut */
         DocumentOut: {
@@ -240,6 +336,37 @@ export interface components {
          * @enum {string}
          */
         DocumentStatus: "queued" | "processing" | "ready" | "failed";
+        /** DoneEvent */
+        DoneEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "done";
+            /** Answer */
+            answer: string;
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            refusal: components["schemas"]["Refusal"] | null;
+            /** Model */
+            model: string | null;
+            usage: components["schemas"]["AnswerUsage"];
+            timings: components["schemas"]["Timings"];
+            /** Answer Id */
+            answer_id?: string | null;
+        };
+        /** ErrorEvent */
+        ErrorEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "error";
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
         /** ErrorResponse */
         ErrorResponse: {
             /** Code */
@@ -312,6 +439,18 @@ export interface components {
             database: components["schemas"]["DatabaseStatus"];
             models: components["schemas"]["ModelsStatus"];
         };
+        /** Refusal */
+        Refusal: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "not_found" | "out_of_scope" | "no_passages" | "no_citations";
+            /** Message */
+            message: string;
+            /** Closest */
+            closest: components["schemas"]["SearchHit"][];
+        };
         /** SearchHit */
         SearchHit: {
             /**
@@ -345,6 +484,18 @@ export interface components {
             /** Hits */
             hits: components["schemas"]["SearchHit"][];
         };
+        /** SourcesEvent */
+        SourcesEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "sources";
+            /** Query */
+            query: string;
+            /** Passages */
+            passages: components["schemas"]["SearchHit"][];
+        };
         /**
          * SpanOut
          * @description A range of the chunk's text and where it sits: page, box (0-1, top-left origin).
@@ -364,6 +515,30 @@ export interface components {
             char_start: number;
             /** Char End */
             char_end: number;
+        };
+        /** Timings */
+        Timings: {
+            /** Rewrite Ms */
+            rewrite_ms: number | null;
+            /** Retrieval Ms */
+            retrieval_ms: number;
+            /** First Token Ms */
+            first_token_ms: number | null;
+            /** Total Ms */
+            total_ms: number;
+        };
+        /**
+         * Turn
+         * @description One earlier exchange in the conversation.
+         */
+        Turn: {
+            /** Question */
+            question: string;
+            /**
+             * Answer
+             * @default
+             */
+            answer: string;
         };
     };
     responses: never;
@@ -760,6 +935,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    answer_answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
                 };
             };
             /** @description Not Found */

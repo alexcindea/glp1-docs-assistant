@@ -507,6 +507,112 @@
           }
         }
       }
+    },
+    "/answers": {
+      "post": {
+        "tags": [
+          "answers"
+        ],
+        "summary": "Answer",
+        "operationId": "answer_answers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/SourcesEvent"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DeltaEvent"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DoneEvent"
+                          },
+                          {
+                            "$ref": "#/components/schemas/ErrorEvent"
+                          }
+                        ],
+                        "discriminator": {
+                          "propertyName": "kind",
+                          "mapping": {
+                            "sources": "#/components/schemas/SourcesEvent",
+                            "delta": "#/components/schemas/DeltaEvent",
+                            "done": "#/components/schemas/DoneEvent",
+                            "error": "#/components/schemas/ErrorEvent"
+                          }
+                        },
+                        "title": "Streamitem Answer Answers Post"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -541,6 +647,84 @@
           "pages_total"
         ],
         "title": "ActiveJob"
+      },
+      "AnswerRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Turn"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "History"
+          },
+          "document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "AnswerRequest"
+      },
+      "AnswerUsage": {
+        "properties": {
+          "input_tokens": {
+            "type": "integer",
+            "title": "Input Tokens",
+            "default": 0
+          },
+          "cached_input_tokens": {
+            "type": "integer",
+            "title": "Cached Input Tokens",
+            "default": 0
+          },
+          "output_tokens": {
+            "type": "integer",
+            "title": "Output Tokens",
+            "default": 0
+          },
+          "reasoning_tokens": {
+            "type": "integer",
+            "title": "Reasoning Tokens",
+            "default": 0
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "AnswerUsage",
+        "description": "Every model call for the question, summed."
       },
       "Body_upload_document_documents_post": {
         "properties": {
@@ -610,6 +794,72 @@
         ],
         "title": "ChunkOut"
       },
+      "Citation": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Document Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "chunk_id": {
+            "type": "integer",
+            "title": "Chunk Id"
+          },
+          "section_path": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Section Path"
+          },
+          "page_start": {
+            "type": "integer",
+            "title": "Page Start"
+          },
+          "page_end": {
+            "type": "integer",
+            "title": "Page End"
+          },
+          "char_start": {
+            "type": "integer",
+            "title": "Char Start"
+          },
+          "char_end": {
+            "type": "integer",
+            "title": "Char End"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/SpanOut"
+            },
+            "type": "array",
+            "title": "Spans"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "document_id",
+          "filename",
+          "chunk_id",
+          "section_path",
+          "page_start",
+          "page_end",
+          "char_start",
+          "char_end",
+          "spans"
+        ],
+        "title": "Citation",
+        "description": "Passage `n` of the sources, and where to highlight it."
+      },
       "DatabaseStatus": {
         "properties": {
           "reachable": {
@@ -672,6 +922,25 @@
           "expected_revision"
         ],
         "title": "DatabaseStatus"
+      },
+      "DeltaEvent": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "delta",
+            "title": "Kind",
+            "default": "delta"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "DeltaEvent"
       },
       "DocumentOut": {
         "properties": {
@@ -786,6 +1055,100 @@
           "failed"
         ],
         "title": "DocumentStatus"
+      },
+      "DoneEvent": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "done",
+            "title": "Kind",
+            "default": "done"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "refusal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Refusal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/AnswerUsage"
+          },
+          "timings": {
+            "$ref": "#/components/schemas/Timings"
+          },
+          "answer_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "citations",
+          "refusal",
+          "model",
+          "usage",
+          "timings"
+        ],
+        "title": "DoneEvent"
+      },
+      "ErrorEvent": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "error",
+            "title": "Kind",
+            "default": "error"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorEvent"
       },
       "ErrorResponse": {
         "properties": {
@@ -955,6 +1318,38 @@
         ],
         "title": "ReadinessReport"
       },
+      "Refusal": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "not_found",
+              "out_of_scope",
+              "no_passages",
+              "no_citations"
+            ],
+            "title": "Reason"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "closest": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Closest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "message",
+          "closest"
+        ],
+        "title": "Refusal"
+      },
       "SearchHit": {
         "properties": {
           "document_id": {
@@ -1046,6 +1441,33 @@
         ],
         "title": "SearchResponse"
       },
+      "SourcesEvent": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "sources",
+            "title": "Kind",
+            "default": "sources"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Passages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "passages"
+        ],
+        "title": "SourcesEvent"
+      },
       "SpanOut": {
         "properties": {
           "page": {
@@ -1089,6 +1511,69 @@
         ],
         "title": "SpanOut",
         "description": "A range of the chunk's text and where it sits: page, box (0-1, top-left origin)."
+      },
+      "Timings": {
+        "properties": {
+          "rewrite_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rewrite Ms"
+          },
+          "retrieval_ms": {
+            "type": "number",
+            "title": "Retrieval Ms"
+          },
+          "first_token_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Token Ms"
+          },
+          "total_ms": {
+            "type": "number",
+            "title": "Total Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rewrite_ms",
+          "retrieval_ms",
+          "first_token_ms",
+          "total_ms"
+        ],
+        "title": "Timings"
+      },
+      "Turn": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 8000,
+            "title": "Answer",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "Turn",
+        "description": "One earlier exchange in the conversation."
       }
     }
   }

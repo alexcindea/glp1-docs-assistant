@@ -8,13 +8,11 @@ highlight it, and its rank in each search path, so it can show why it was found.
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter
 from pydantic import BaseModel, Field, StringConstraints
-from sqlalchemy import select
 
-from app.errors import ApiError, error_responses
-from app.models import Document
-from app.passages import SearchHit, load_hits
+from app.errors import error_responses
+from app.passages import SearchHit, check_documents, load_hits
 from app.retrieval import retrieve
 from app.state import AppStateDep, SessionDep
 
@@ -36,7 +34,7 @@ class SearchResponse(BaseModel):
 @router.post("", responses=error_responses(404))
 async def search(request: SearchRequest, state: AppStateDep, session: SessionDep) -> SearchResponse:
     if request.document_ids is not None:
-        await _check_documents(session, request.document_ids)
+        await check_documents(session, request.document_ids)
     fused = await retrieve(
         session,
         state.embedder,
@@ -45,14 +43,3 @@ async def search(request: SearchRequest, state: AppStateDep, session: SessionDep
         document_ids=request.document_ids,
     )
     return SearchResponse(query=request.query, hits=await load_hits(session, fused))
-
-
-async def _check_documents(session: SessionDep, ids: list[uuid.UUID]) -> None:
-    found = set(await session.scalars(select(Document.id).where(Document.id.in_(ids))))
-    missing = [str(i) for i in ids if i not in found]
-    if missing:
-        raise ApiError(
-            status.HTTP_404_NOT_FOUND,
-            "unknown_documents",
-            f"No document with id {', '.join(missing)}. List documents with GET /documents.",
-        )

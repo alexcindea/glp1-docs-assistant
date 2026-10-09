@@ -129,6 +129,7 @@ class DoneEvent(BaseModel):
     model: str | None  # the answer model; None when it wasn't called
     usage: AnswerUsage
     timings: Timings
+    answer_id: uuid.UUID | None = None  # set once the answer is saved (POST /answers)
 
 
 class ErrorEvent(BaseModel):

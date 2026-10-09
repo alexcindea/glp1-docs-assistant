@@ -245,3 +245,37 @@ class Job(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AnswerRecord(Base):
+    """One question asked and how it ended: an answer, a refusal, or an error.
+
+    Kept so feedback can point at an answer and cost and latency can be reported
+    over real use. Not tied to documents: deleting one keeps the answers that
+    cited it (the citations hold a copy of what was cited).
+    """
+
+    __tablename__ = "answers"
+    __table_args__ = (
+        CheckConstraint("(refusal_reason IS NULL) OR (error_code IS NULL)", name="one_outcome"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    question: Mapped[str] = mapped_column(Text)
+    history: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)  # earlier turns, as sent
+    search_query: Mapped[str] = mapped_column(Text)  # what retrieval was given
+    document_ids: Mapped[list[uuid.UUID] | None] = mapped_column(ARRAY(UUID(as_uuid=True)))
+    answer: Mapped[str] = mapped_column(Text)  # "" when refused or failed
+    citations: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    refusal_reason: Mapped[str | None] = mapped_column(String(16))
+    error_code: Mapped[str | None] = mapped_column(String(32))
+    model: Mapped[str | None] = mapped_column(String(128))
+    input_tokens: Mapped[int] = mapped_column(Integer)
+    output_tokens: Mapped[int] = mapped_column(Integer)
+    cost_usd: Mapped[float | None] = mapped_column(Float)
+    first_token_ms: Mapped[float | None] = mapped_column(Float)
+    total_ms: Mapped[float] = mapped_column(Float)
+    trace_id: Mapped[str | None] = mapped_column(String(32))  # find it in Phoenix

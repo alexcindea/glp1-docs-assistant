@@ -35,6 +35,18 @@ def error_responses(*status_codes: int) -> dict[int | str, dict[str, Any]]:
     return {code: {"model": ErrorResponse} for code in status_codes}
 
 
+def stream_error_responses(*status_codes: int) -> dict[int | str, dict[str, Any]]:
+    """The same for a route that streams: its errors are still JSON.
+
+    Given a `model`, FastAPI documents it under the route's own media type
+    (text/event-stream), so the JSON content is spelled out instead. Covers the
+    app-wide 422 and 500 too, which would otherwise get the stream's media type.
+    """
+    json_error = {"application/json": {"schema": {"$ref": "#/components/schemas/ErrorResponse"}}}
+    codes = (*status_codes, *ERROR_RESPONSES)
+    return {code: {"content": json_error} for code in codes}
+
+
 # Added to every route in the OpenAPI schema, replacing FastAPI's default 422 model,
 # so the generated frontend types know the error shape.
 ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {

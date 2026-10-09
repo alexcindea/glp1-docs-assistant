@@ -7,12 +7,14 @@ passages that /search returns, that the model reads, and that answers cite.
 import uuid
 from collections.abc import Sequence
 
+from fastapi import status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.documents import ChunkOut
+from app.errors import ApiError
 from app.models import Chunk, Document
 from app.retrieval import Fused
 
@@ -56,3 +58,15 @@ async def load_hits(session: AsyncSession, fused: Sequence[Fused]) -> list[Searc
             )
         )
     return hits
+
+
+async def check_documents(session: AsyncSession, ids: Sequence[uuid.UUID]) -> None:
+    """404 naming every id that is not a document, before any work starts."""
+    found = set(await session.scalars(select(Document.id).where(Document.id.in_(ids))))
+    missing = [str(i) for i in ids if i not in found]
+    if missing:
+        raise ApiError(
+            status.HTTP_404_NOT_FOUND,
+            "unknown_documents",
+            f"No document with id {', '.join(missing)}. List documents with GET /documents.",
+        )

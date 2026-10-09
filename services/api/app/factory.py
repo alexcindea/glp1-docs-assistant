@@ -8,7 +8,7 @@ import structlog
 from fastapi import FastAPI
 from opentelemetry.sdk.trace import TracerProvider
 
-from app import documents, health, search
+from app import answers, documents, health, search
 from app.config import Settings, get_settings
 from app.db import create_engine, create_sessionmaker, migration_head
 from app.errors import ERROR_RESPONSES, register_error_handlers
@@ -79,6 +79,7 @@ def create_app(
     app.include_router(health.router)
     app.include_router(documents.router)
     app.include_router(search.router)
+    app.include_router(answers.router)
     app.add_middleware(
         documents.UploadSizeLimit,
         max_bytes=documents.upload_limit_bytes(settings.max_upload_mb),

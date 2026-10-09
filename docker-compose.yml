@@ -15,6 +15,12 @@ x-api-image: &api-image
 x-api-environment: &api-environment
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
   LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  LLM_ANSWER_MODEL: ${LLM_ANSWER_MODEL:-gpt-6.1-sol}
+  LLM_ANSWER_EFFORT: ${LLM_ANSWER_EFFORT:-low}
+  LLM_REWRITE_MODEL: ${LLM_REWRITE_MODEL:-gpt-6-luna}
+  LLM_REWRITE_EFFORT: ${LLM_REWRITE_EFFORT:-none}
+  QUERY_REWRITE: ${QUERY_REWRITE:-follow_ups}
   EMBEDDER: ${EMBEDDER:-qwen3-0.6b}
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
   OTEL_TRACES_ENDPOINT: http://phoenix:6006/v1/traces
