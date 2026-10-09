@@ -4,14 +4,23 @@ from app.config import Settings
 from app.embedding_models import LOCAL_MODELS
 from app.embeddings import Embedder, FakeEmbedder
 from app.llm import FakeLLMProvider, LLMProvider
+from app.llm_tracing import TracedLLMProvider
 from app.local_embedder import TransformersEmbedder
 from app.models import EMBEDDING_DIMENSIONS
 
 
 def build_llm_provider(settings: Settings) -> LLMProvider:
+    """The configured provider, traced: every model call becomes a span."""
+    provider: LLMProvider
     match settings.llm_provider:
         case "fake":
-            return FakeLLMProvider()
+            provider = FakeLLMProvider()
+        case "openai":
+            # Imported here: the worker builds providers too, and never needs the SDK.
+            from app.openai_provider import OpenAIProvider
+
+            provider = OpenAIProvider.from_settings(settings)
+    return TracedLLMProvider(provider)
 
 
 def build_embedder(settings: Settings) -> Embedder:

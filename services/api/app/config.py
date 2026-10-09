@@ -6,8 +6,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.llm import ReasoningEffort
 
 
 def _find_env_file() -> Path | None:
@@ -30,9 +32,19 @@ class Settings(BaseSettings):
     db_connect_timeout_seconds: float = 5.0
 
     # Model backends. "fake" needs no key and no download (tests, CI). The real
-    # embedder runs locally (app.local_embedder); the real LLM arrives in phase 5.
-    llm_provider: Literal["fake"] = "fake"
+    # embedder runs locally (app.local_embedder); the LLM is OpenAI.
+    llm_provider: Literal["fake", "openai"] = "fake"
     embedder: Literal["fake", "qwen3-0.6b"] = "fake"
+
+    # OpenAI: the model and reasoning effort for each role (app.llm.ModelRole).
+    openai_api_key: SecretStr | None = None
+    openai_timeout_seconds: float = 60.0
+    llm_answer_model: str = "gpt-6.1-sol"
+    llm_answer_effort: ReasoningEffort = "low"
+    llm_rewrite_model: str = "gpt-6-luna"
+    llm_rewrite_effort: ReasoningEffort = "none"
+    llm_judge_model: str = "gpt-6-astra"
+    llm_judge_effort: ReasoningEffort = "medium"
 
     # Uploads
     max_upload_mb: int = 100

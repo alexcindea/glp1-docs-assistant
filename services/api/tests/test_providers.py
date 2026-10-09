@@ -3,6 +3,7 @@
 import math
 
 import pytest
+from pydantic import SecretStr
 
 from app.config import Settings
 from app.embeddings import FakeEmbedder
@@ -91,3 +92,15 @@ def test_factory_builds_fakes_sized_for_the_database() -> None:
 def test_an_embedder_that_does_not_fit_the_column_is_refused() -> None:
     with pytest.raises(ValueError, match="needs a migration"):
         check_dimensions(FakeEmbedder(dimensions=384))
+
+
+@pytest.mark.parametrize("key", [None, SecretStr(""), SecretStr("  ")])
+def test_openai_needs_a_key_and_says_where_to_set_it(key: SecretStr | None) -> None:
+    with pytest.raises(ValueError, match="OPENAI_API_KEY"):
+        build_llm_provider(Settings(llm_provider="openai", openai_api_key=key))
+
+
+def test_openai_is_built_from_settings_without_calling_it() -> None:
+    settings = Settings(llm_provider="openai", openai_api_key=SecretStr("sk-test"))
+
+    assert build_llm_provider(settings).name == "openai"

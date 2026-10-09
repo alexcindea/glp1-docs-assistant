@@ -1,8 +1,9 @@
 """The single interface every model call goes through.
 
 Feature code asks for a model *role* (answer, rewrite, judge) and never imports
-a vendor SDK. The real OpenAI implementation lands with grounded answers;
-until then, and always in unit tests and CI, the fake below is used.
+a vendor SDK: which model serves a role, and how hard it reasons, is set in
+`app.providers`. The real implementation is `app.openai_provider`; unit tests
+and CI use the fake below.
 """
 
 from collections.abc import AsyncIterator, Callable
@@ -18,32 +19,59 @@ class ModelRole(StrEnum):
     JUDGE = "judge"  # eval judge (strong model)
 
 
+# How long a reasoning model thinks before answering: more is slower and costs
+# more output tokens. Not every model accepts every level.
+ReasoningEffort = Literal["none", "low", "medium", "high", "xhigh", "max"]
+
+
 class Message(BaseModel):
     role: Literal["user", "assistant"]
     content: str
 
 
 class CompletionRequest(BaseModel):
+    """One model call. No temperature: current reasoning models don't take one."""
+
     role: ModelRole
-    system: str
+    system: str  # instructions only; document text goes in `messages` as quoted data
     messages: list[Message]
+    # Caps everything the model generates, reasoning included.
     max_tokens: int = 1024
-    temperature: float = 0.0
 
 
 class Usage(BaseModel):
-    input_tokens: int
-    output_tokens: int
+    """Tokens one call used, as the provider bills them."""
+
+    input_tokens: int  # all of them, including the two cache counts below
+    output_tokens: int  # all of them, including reasoning
     # Prompt caching bills these at different rates, so cost needs them apart.
-    cache_creation_input_tokens: int = 0
-    cache_read_input_tokens: int = 0
+    cached_input_tokens: int = 0  # read from the cache
+    cache_write_input_tokens: int = 0  # written to it
+    reasoning_tokens: int = 0  # billed as output, never shown
 
 
 class Completion(BaseModel):
     text: str
-    model: str
+    model: str  # what the provider says answered, e.g. a dated snapshot
     usage: Usage
-    stop_reason: str | None = None
+    stop_reason: str | None = None  # "completed", or why it stopped early
+
+
+class LLMError(Exception):
+    """A model call failed. `kind` says what a caller can do about it; `message`
+    is safe to show users, `detail` (the provider's own words) is for the logs.
+    Neither holds the prompt or a key."""
+
+    def __init__(
+        self,
+        kind: Literal["unavailable", "rate_limited", "auth", "bad_request"],
+        message: str,
+        detail: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.kind = kind
+        self.message = message
+        self.detail = detail
 
 
 class TextDelta(BaseModel):
@@ -103,7 +131,7 @@ class FakeLLMProvider:
             text=text,
             model=f"fake-{request.role}",
             usage=Usage(input_tokens=_count_tokens(prompt), output_tokens=_count_tokens(text)),
-            stop_reason="end_turn",
+            stop_reason="completed",
         )
 
     async def stream(self, request: CompletionRequest) -> AsyncIterator[StreamEvent]:

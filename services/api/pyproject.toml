@@ -7,6 +7,7 @@ dependencies = [
     "alembic>=1.16",
     "asyncpg>=0.30",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",
+    "openai>=3.27",
     "opentelemetry-exporter-otlp-proto-http>=1.45.1",
     "opentelemetry-instrumentation-fastapi>=0.66b1",
     "opentelemetry-instrumentation-sqlalchemy>=0.66b1",
