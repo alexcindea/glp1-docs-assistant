@@ -10,6 +10,7 @@ import { documentName, pageLabel } from "@/lib/documents";
 import { cn } from "@/lib/utils";
 
 import { AnswerText } from "./answer-text";
+import { Feedback } from "./feedback";
 
 type Props = {
   turn: Turn;
@@ -274,22 +275,25 @@ function Meta({
   const cost =
     done.usage.cost_usd === null ? null : `$${done.usage.cost_usd.toFixed(4)}`;
   return (
-    <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs">
-      {sources > 0 && (
-        <>
-          <button
-            type="button"
-            onClick={onEvidence}
-            className="hover:text-foreground underline decoration-dotted underline-offset-2"
-          >
-            Evidence: {sources} passages
-          </button>
-          <span aria-hidden>·</span>
-        </>
-      )}
-      <span>
-        {[`${seconds} s`, cost, done.model].filter(Boolean).join(" · ")}
-      </span>
-    </p>
+    <div className="space-y-2">
+      <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs">
+        {sources > 0 && (
+          <>
+            <button
+              type="button"
+              onClick={onEvidence}
+              className="hover:text-foreground underline decoration-dotted underline-offset-2"
+            >
+              Evidence: {sources} passages
+            </button>
+            <span aria-hidden>·</span>
+          </>
+        )}
+        <span>
+          {[`${seconds} s`, cost, done.model].filter(Boolean).join(" · ")}
+        </span>
+      </p>
+      {done.answer_id && <Feedback answerId={done.answer_id} />}
+    </div>
   );
 }
