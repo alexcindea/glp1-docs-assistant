@@ -78,7 +78,7 @@ Fill in as the skeleton lands; keep this section accurate.
 ```powershell
 # setup (once)
 uv run scripts/fetch_corpus.py           # download demo corpus into corpus/ (--pin for new entries)
-uv sync --all-packages                   # Python deps; plain `uv sync` drops the API's dev tools
+uv sync --all-packages --all-extras      # Python deps incl. the worker's Docling; plain `uv sync` drops dev tools
 cd apps/web; pnpm install
 uvx pre-commit install                   # git hooks
 
@@ -86,7 +86,7 @@ uvx pre-commit install                   # git hooks
 docker compose up -d db phoenix          # Postgres 127.0.0.1:5432, Phoenix UI http://127.0.0.1:6006
 cd services/api; uv run alembic upgrade head
 cd services/api; uv run fastapi dev      # API http://127.0.0.1:8000 (/health/ready)
-cd services/api; uv run python -m app.worker
+cd services/api; uv run python -m app.worker   # ingest worker (run several for throughput)
 cd apps/web; pnpm dev                     # frontend http://localhost:3000 (/health)
 cd apps/web; pnpm gen:api                 # regenerate API types after changing API models
 
