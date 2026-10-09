@@ -13,6 +13,7 @@ import { useChat } from "./use-chat";
 type Props = {
   documents: DocumentOut[];
   documentsError: string | null;
+  initialFilter: string[]; // documents preselected for the first question
 };
 
 /**
@@ -20,9 +21,9 @@ type Props = {
  * behind the citation last clicked, with the passage highlighted, or the
  * answer's evidence. On narrow screens the panel opens as a full-screen sheet.
  */
-export function ChatApp({ documents, documentsError }: Props) {
+export function ChatApp({ documents, documentsError, initialFilter }: Props) {
   const { turns, busy, ask, stop } = useChat();
-  const [filter, setFilter] = useState<string[]>([]);
+  const [filter, setFilter] = useState<string[]>(initialFilter);
   const [panel, setPanel] = useState<PanelState | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 

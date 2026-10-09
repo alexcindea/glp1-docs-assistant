@@ -43,3 +43,57 @@ export function documentName(filename: string): string {
 export function pageLabel(first: number, last: number): string {
   return first === last ? `p. ${first}` : `pp. ${first}–${last}`;
 }
+
+export type DocumentState = {
+  label: string;
+  tone: "ready" | "working" | "failed";
+  progress: number | null; // 0-1 while pages are being read
+  detail: string | null;
+};
+
+/** What to show for a document: from its status and the job working on it, if any. */
+export function documentState(document: DocumentOut): DocumentState {
+  const job = document.active_job;
+  if (job) {
+    const verb = job.kind === "rechunk" ? "Re-chunking" : "Reading pages";
+    if (job.status === "queued") {
+      return {
+        label: "Waiting for a worker",
+        tone: "working",
+        progress: null,
+        detail: null,
+      };
+    }
+    const total = job.pages_total || document.page_count;
+    return {
+      label: verb,
+      tone: "working",
+      progress: total ? Math.min(1, job.pages_done / total) : null,
+      detail: total ? `${job.pages_done} of ${total} pages` : null,
+    };
+  }
+  switch (document.status) {
+    case "ready":
+      return { label: "Ready", tone: "ready", progress: null, detail: null };
+    case "failed":
+      return {
+        label: "Failed",
+        tone: "failed",
+        progress: null,
+        detail:
+          document.error ?? "Ingest failed. Upload the file again to retry.",
+      };
+    default:
+      return {
+        label: "Waiting for a worker",
+        tone: "working",
+        progress: null,
+        detail: null,
+      };
+  }
+}
+
+/** Whether the list should keep refreshing: some document is still being read. */
+export function anyWorking(documents: DocumentOut[]): boolean {
+  return documents.some((d) => documentState(d).tone === "working");
+}
