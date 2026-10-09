@@ -41,8 +41,10 @@ type Props = {
  * The page fits the panel's width (times the zoom). Highlights are boxes
  * positioned by percentage over the rendered page (lib/highlights), so they
  * stay aligned at any size. Each citation click jumps to the passage's first
- * page and scrolls its highlight into view; the time from the click to that
- * moment is recorded as the performance measure "citation-to-highlight".
+ * page and scrolls its highlight into view, also when that page is already
+ * shown; the time from the click to that moment is recorded as the
+ * performance measure "citation-to-highlight". Remounted per document (keyed
+ * by the panel), so a page drawn for one document never counts for another.
  */
 export default function PdfViewer({ documentId, spans, focusKey }: Props) {
   const pages = passagePages(spans);
@@ -61,9 +63,12 @@ export default function PdfViewer({ documentId, spans, focusKey }: Props) {
   const focused = useRef<string | null>(null);
   const boxes = highlightBoxes(spans, page);
 
-  function onRendered() {
-    if (focused.current === focusKey) return; // later renders: the user is reading
-    focused.current = focusKey;
+  // The page last drawn. Focusing waits for it to be the page shown, so the
+  // highlight is on screen before it is scrolled to and timed.
+  const [renderedPage, setRenderedPage] = useState<number | null>(null);
+  useEffect(() => {
+    if (renderedPage !== page || focused.current === focusKey) return;
+    focused.current = focusKey; // once per click: after that, the user is reading
     scroller.current
       ?.querySelector("[data-highlight]")
       ?.scrollIntoView({ block: "center", inline: "nearest" });
@@ -72,7 +77,7 @@ export default function PdfViewer({ documentId, spans, focusKey }: Props) {
     } catch {
       // no click mark (the viewer opened some other way): nothing to measure
     }
-  }
+  }, [focusKey, page, renderedPage]);
 
   const file = `/api/documents/${documentId}/file`;
   return (
@@ -182,7 +187,7 @@ export default function PdfViewer({ documentId, spans, focusKey }: Props) {
                 pageNumber={page}
                 width={Math.round((width - 24) * zoom)}
                 renderAnnotationLayer={false}
-                onRenderSuccess={onRendered}
+                onRenderSuccess={(drawn) => setRenderedPage(drawn.pageNumber)}
                 loading={<PageSkeleton />}
               />
               <div className="pointer-events-none absolute inset-0" aria-hidden>

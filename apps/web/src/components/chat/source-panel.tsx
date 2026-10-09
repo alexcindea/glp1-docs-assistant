@@ -89,6 +89,7 @@ export function SourcePanel({ turn, panel, onView, onOpen, onClose }: Props) {
           <PassageHeader n={panel.n} hit={hit} cited={cited.has(panel.n)} />
           <div className="min-h-0 flex-1">
             <PdfViewer
+              key={hit.document_id}
               documentId={hit.document_id}
               spans={hit.chunk.spans}
               focusKey={panel.focusKey}
