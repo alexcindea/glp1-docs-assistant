@@ -1,14 +1,14 @@
 {
-  "measured_at": "2026-10-09T14:36:02+00:00",
+  "measured_at": "2026-10-09T15:35:46+00:00",
   "questions": 31,
   "embedding_model": "Qwen/Qwen3-Embedding-0.6B@97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
   "candidates_per_path": 50,
   "paths": {
     "vector": {
-      "recall@5": 0.468,
-      "recall@10": 0.597,
-      "ms_median": 18.7,
-      "ms_p95": 22.5,
+      "recall@5": 0.5,
+      "recall@10": 0.629,
+      "ms_median": 19.5,
+      "ms_p95": 22.3,
       "by_tag": {
         "attack": {
           "n": 1,
@@ -24,7 +24,7 @@
         },
         "fact": {
           "n": 17,
-          "recall@10": 0.647
+          "recall@10": 0.706
         },
         "follow-up": {
           "n": 3,
@@ -62,7 +62,9 @@
           6
         ],
         "q004": [
-          null
+          null,
+          null,
+          3
         ],
         "q005": [
           null
@@ -153,10 +155,10 @@
       }
     },
     "bm25": {
-      "recall@5": 0.516,
-      "recall@10": 0.645,
-      "ms_median": 6.7,
-      "ms_p95": 8.9,
+      "recall@5": 0.548,
+      "recall@10": 0.677,
+      "ms_median": 7.0,
+      "ms_p95": 11.2,
       "by_tag": {
         "attack": {
           "n": 1,
@@ -172,7 +174,7 @@
         },
         "fact": {
           "n": 17,
-          "recall@10": 0.647
+          "recall@10": 0.706
         },
         "follow-up": {
           "n": 3,
@@ -210,7 +212,9 @@
           null
         ],
         "q004": [
-          null
+          null,
+          null,
+          4
         ],
         "q005": [
           6
@@ -301,10 +305,10 @@
       }
     },
     "fused": {
-      "recall@5": 0.645,
-      "recall@10": 0.758,
-      "ms_median": 158.2,
-      "ms_p95": 175.4,
+      "recall@5": 0.677,
+      "recall@10": 0.79,
+      "ms_median": 175.6,
+      "ms_p95": 193.1,
       "by_tag": {
         "attack": {
           "n": 1,
@@ -320,7 +324,7 @@
         },
         "fact": {
           "n": 17,
-          "recall@10": 0.765
+          "recall@10": 0.824
         },
         "follow-up": {
           "n": 3,
@@ -358,7 +362,9 @@
           null
         ],
         "q004": [
-          null
+          null,
+          null,
+          2
         ],
         "q005": [
           6
@@ -447,7 +453,7 @@
           null
         ]
       },
-      "embed_ms_median": 132.7
+      "embed_ms_median": 148.1
     }
   }
 }
