@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "src/lib/api/schema.d.ts",
+    // pdf.js runtime files, copied from node_modules (scripts/copy-pdfjs-assets.mjs)
+    "public/pdfjs/**",
   ]),
 ]);
 
