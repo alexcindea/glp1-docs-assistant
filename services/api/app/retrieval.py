@@ -76,26 +76,38 @@ async def vector_search(
     vectors from two models live in unrelated spaces, so comparing them would
     rank by noise. Readiness warns about chunks left out this way.
 
-    The HNSW index returns at most `hnsw.ef_search` rows (default 40), and a
-    document filter is applied to what it returns, so both settings are raised for
-    this transaction: ef_search to the limit, and iterative scanning (pgvector 0.8)
-    so a filtered search keeps going until it has `limit` rows, in exact order.
+    Searching chosen documents is exact: their chunks are read first and every
+    distance computed (a few ms for a 1,000-chunk document). The HNSW index is
+    approximate, and a chunk it can't reach from its entry point is never returned,
+    however far a filtered scan goes; seen in CI with near-identical test vectors.
+
+    Searching everything uses the HNSW index, which returns at most
+    `hnsw.ef_search` rows (default 40), so that is raised to the limit for this
+    transaction, with iterative scanning (pgvector 0.8) so that rows from another
+    model, which the index still holds, don't leave the result short.
     """
+    current = Chunk.embedding.is_not(None), Chunk.embedding_model == model
+    if document_ids is not None:
+        chosen = (
+            select(Chunk.id, Chunk.embedding)
+            .where(*current, Chunk.document_id.in_(document_ids))
+            .cte("chosen")
+            .prefix_with("MATERIALIZED")  # read them, rather than walk the index
+        )
+        exact = select(chosen.c.id).order_by(chosen.c.embedding.cosine_distance(query)).limit(limit)
+        return list(await session.scalars(exact))
     await session.execute(
         select(
             func.set_config("hnsw.ef_search", str(max(limit, 40)), True),
             func.set_config("hnsw.iterative_scan", "strict_order", True),
         )
     )
-    distance = Chunk.embedding.cosine_distance(query)
     statement = (
         select(Chunk.id)
-        .where(Chunk.embedding.is_not(None), Chunk.embedding_model == model)
-        .order_by(distance)
+        .where(*current)
+        .order_by(Chunk.embedding.cosine_distance(query))
         .limit(limit)
     )
-    if document_ids is not None:
-        statement = statement.where(Chunk.document_id.in_(document_ids))
     return list(await session.scalars(statement))
 
 

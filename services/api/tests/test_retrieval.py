@@ -135,7 +135,7 @@ async def test_vector_search_returns_more_rows_than_the_index_default(
 
     async with sessions() as session:
         await use_the_vector_index(session)
-        found = await vector_search(session, query, EMBEDDER.name, 60, [document])
+        found = await vector_search(session, query, EMBEDDER.name, 60)  # the whole corpus
         settings = [
             await session.scalar(text(f"SHOW {name}"))
             for name in ("hnsw.ef_search", "hnsw.iterative_scan")
@@ -152,6 +152,8 @@ async def test_vector_search_returns_more_rows_than_the_index_default(
 async def test_vector_search_filters_to_the_chosen_documents_even_when_they_rank_low(
     sessions: async_sessionmaker[AsyncSession],
 ) -> None:
+    # A filtered search is exact. Through the index it once returned nothing in CI:
+    # HNSW can leave a vector unreachable, and a filtered scan never finds it.
     strong, weak = await insert_document(sessions), await insert_document(sessions)
     await add_chunks(sessions, strong, [f"narwhal tusk length {i}" for i in range(200)])
     (weak_chunk,) = await add_chunks(sessions, weak, ["Unrelated words entirely, narwhal once."])
@@ -161,9 +163,12 @@ async def test_vector_search_filters_to_the_chosen_documents_even_when_they_rank
         await use_the_vector_index(session)
         everywhere = await vector_search(session, query, EMBEDDER.name, 5)
         only_weak = await vector_search(session, query, EMBEDDER.name, 5, [weak])
+        both = await vector_search(session, query, EMBEDDER.name, 300, [strong, weak])
 
     assert weak_chunk not in everywhere
     assert only_weak == [weak_chunk]
+    assert len(both) == 201  # every chunk of the chosen documents, none missed
+    assert both[-1] == weak_chunk
 
 
 @pytest.mark.db
