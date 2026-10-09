@@ -1,0 +1,212 @@
+{
+  "measured_at": "2026-10-09T21:57:06.966Z",
+  "base_url": "http://localhost:3002",
+  "summary": {
+    "questions": 33,
+    "answered": 26,
+    "click_to_highlight_ms_median": 533,
+    "click_to_highlight_ms_p95": 639,
+    "first_response_ms_median": 1854,
+    "first_response_ms_p95": 2884
+  },
+  "rows": [
+    {
+      "id": "q001",
+      "outcome": "answered",
+      "first_response_ms": 2373,
+      "click_to_highlight_ms": 597
+    },
+    {
+      "id": "q002",
+      "outcome": "answered",
+      "first_response_ms": 1846,
+      "click_to_highlight_ms": 466
+    },
+    {
+      "id": "q003",
+      "outcome": "answered",
+      "first_response_ms": 2370,
+      "click_to_highlight_ms": 509
+    },
+    {
+      "id": "q004",
+      "outcome": "answered",
+      "first_response_ms": 1871,
+      "click_to_highlight_ms": 639
+    },
+    {
+      "id": "q005",
+      "outcome": "answered",
+      "first_response_ms": 1344,
+      "click_to_highlight_ms": 599
+    },
+    {
+      "id": "q006",
+      "outcome": "answered",
+      "first_response_ms": 1836,
+      "click_to_highlight_ms": 602
+    },
+    {
+      "id": "q007",
+      "outcome": "answered",
+      "first_response_ms": 1867,
+      "click_to_highlight_ms": 552
+    },
+    {
+      "id": "q008",
+      "outcome": "answered",
+      "first_response_ms": 1885,
+      "click_to_highlight_ms": 471
+    },
+    {
+      "id": "q009",
+      "outcome": "answered",
+      "first_response_ms": 1359,
+      "click_to_highlight_ms": 480
+    },
+    {
+      "id": "q010",
+      "outcome": "answered",
+      "first_response_ms": 1871,
+      "click_to_highlight_ms": 487
+    },
+    {
+      "id": "q011",
+      "outcome": "answered",
+      "first_response_ms": 4451,
+      "click_to_highlight_ms": 601
+    },
+    {
+      "id": "q012",
+      "outcome": "answered",
+      "first_response_ms": 1842,
+      "click_to_highlight_ms": 468
+    },
+    {
+      "id": "q013",
+      "outcome": "answered",
+      "first_response_ms": 1855,
+      "click_to_highlight_ms": 573
+    },
+    {
+      "id": "q014",
+      "outcome": "answered",
+      "first_response_ms": 1837,
+      "click_to_highlight_ms": 572
+    },
+    {
+      "id": "q015",
+      "outcome": "refused",
+      "first_response_ms": 2884,
+      "click_to_highlight_ms": 566
+    },
+    {
+      "id": "q016",
+      "outcome": "answered",
+      "first_response_ms": 1845,
+      "click_to_highlight_ms": 470
+    },
+    {
+      "id": "q017",
+      "outcome": "answered",
+      "first_response_ms": 1854,
+      "click_to_highlight_ms": 604
+    },
+    {
+      "id": "q018",
+      "outcome": "answered",
+      "first_response_ms": 1849,
+      "click_to_highlight_ms": 615
+    },
+    {
+      "id": "q019",
+      "outcome": "answered",
+      "first_response_ms": 1844,
+      "click_to_highlight_ms": 536
+    },
+    {
+      "id": "q020",
+      "outcome": "answered",
+      "first_response_ms": 1855,
+      "click_to_highlight_ms": 512
+    },
+    {
+      "id": "q021",
+      "outcome": "answered",
+      "first_response_ms": 1344,
+      "click_to_highlight_ms": 531
+    },
+    {
+      "id": "q022",
+      "outcome": "refused",
+      "first_response_ms": 1877,
+      "click_to_highlight_ms": 533
+    },
+    {
+      "id": "q023",
+      "outcome": "answered",
+      "first_response_ms": 1881,
+      "click_to_highlight_ms": 500
+    },
+    {
+      "id": "q024",
+      "outcome": "answered",
+      "first_response_ms": 1853,
+      "click_to_highlight_ms": 496
+    },
+    {
+      "id": "q025",
+      "outcome": "answered",
+      "first_response_ms": 1852,
+      "click_to_highlight_ms": 451
+    },
+    {
+      "id": "q026",
+      "outcome": "answered",
+      "first_response_ms": 1847,
+      "click_to_highlight_ms": 487
+    },
+    {
+      "id": "q027",
+      "outcome": "answered",
+      "first_response_ms": 1873,
+      "click_to_highlight_ms": 514
+    },
+    {
+      "id": "q031",
+      "outcome": "refused",
+      "first_response_ms": 2384,
+      "click_to_highlight_ms": 568
+    },
+    {
+      "id": "q032",
+      "outcome": "refused",
+      "first_response_ms": 1851,
+      "click_to_highlight_ms": 704
+    },
+    {
+      "id": "q033",
+      "outcome": "answered",
+      "first_response_ms": 1850,
+      "click_to_highlight_ms": 518
+    },
+    {
+      "id": "q034",
+      "outcome": "refused",
+      "first_response_ms": 1849,
+      "click_to_highlight_ms": 457
+    },
+    {
+      "id": "q035",
+      "outcome": "refused",
+      "first_response_ms": 2358,
+      "click_to_highlight_ms": 586
+    },
+    {
+      "id": "q036",
+      "outcome": "refused",
+      "first_response_ms": 1867,
+      "click_to_highlight_ms": 564
+    }
+  ]
+}
