@@ -87,6 +87,7 @@ docker compose up -d db phoenix          # Postgres 127.0.0.1:5432, Phoenix UI h
 cd services/api; uv run alembic upgrade head
 cd services/api; uv run fastapi dev      # API http://127.0.0.1:8000 (/health/ready)
 cd services/api; uv run python -m app.worker   # ingest worker (run several for throughput)
+cd services/api; uv run python -m app.ask "question"   # one grounded answer in the terminal
 cd apps/web; pnpm dev                     # frontend http://localhost:3000 (/health)
 cd apps/web; pnpm gen:api                 # regenerate API types after changing API models
 
