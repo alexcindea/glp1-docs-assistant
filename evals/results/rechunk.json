@@ -1,18 +1,18 @@
 {
   "chunker": [
-    "sections-v3"
+    "sections-v5"
   ],
-  "chunks": 4952,
+  "chunks": 4955,
   "text_chunks": 4243,
-  "table_chunks": 709,
+  "table_chunks": 712,
   "text_tokens_median": 104,
   "text_tokens_p95": 291,
   "text_tokens_max": 450,
   "table_tokens_max": 450,
   "chunks_over_450_tokens": 0,
-  "measured_at": "2026-10-09T11:25:03+00:00",
-  "workers": 2,
+  "measured_at": "2026-10-09T14:09:03+00:00",
+  "workers": 1,
   "documents": 18,
   "pages": 1460,
-  "rechunk_wall_clock_seconds": 2.2
+  "rechunk_wall_clock_seconds": 57.6
 }
