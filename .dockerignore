@@ -1,4 +1,4 @@
-# The repo root is the build context for the API image only (services/api/Dockerfile).
+# The repo root is the build context for the API and worker images (services/api/Dockerfile).
 # Allow-list what it needs; everything else (corpus PDFs, node_modules, .env) stays out.
 *
 !pyproject.toml

@@ -34,6 +34,13 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy .
+      # Docling's layout and table models (~500 MB) and RapidOCR's; downloaded once.
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/huggingface
+            .venv/lib/python3.12/site-packages/rapidocr/models
+          key: docling-models-${{ hashFiles('uv.lock') }}
       # Builds services/db and runs the database tests against it (testcontainers).
       - run: uv run pytest
 
@@ -94,7 +101,7 @@ jobs:
           SKIP: web-format,web-lint
 
   stack:
-    name: Full stack comes up healthy
+    name: Full stack comes up healthy and ingests a PDF
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -104,6 +111,22 @@ jobs:
         run: |
           curl --fail --silent --show-error http://127.0.0.1:8000/health/ready
           curl --fail --silent --show-error http://127.0.0.1:3000/health | grep -q "Everything the app needs is running"
+      - name: The worker image ingests a PDF (a text page and a scanned page)
+        run: |
+          pdf=services/api/tests/fixtures/two-pages.pdf
+          id=$(curl --fail --silent --show-error -F "file=@$pdf;type=application/pdf" \
+            http://127.0.0.1:8000/documents | jq -r .id)
+          for _ in $(seq 1 60); do
+            status=$(curl --fail --silent http://127.0.0.1:8000/documents/$id | jq -r .status)
+            echo "$status"
+            [ "$status" = ready ] && break
+            [ "$status" = failed ] && exit 1
+            sleep 5
+          done
+          [ "$status" = ready ]
+          chunks=$(curl --fail --silent http://127.0.0.1:8000/documents/$id/chunks | jq length)
+          echo "$chunks chunks"
+          [ "$chunks" -gt 0 ]
       - name: Logs on failure
         if: failure()
         run: docker compose logs

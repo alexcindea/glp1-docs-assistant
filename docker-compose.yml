@@ -8,6 +8,7 @@ x-api-image: &api-image
   build:
     context: .
     dockerfile: services/api/Dockerfile
+    target: api
   image: docs-assistant-api:local
 
 x-api-environment: &api-environment
@@ -75,8 +76,12 @@ services:
       retries: 20
 
   worker:
-    <<: *api-image
-    command: ["python", "-m", "app.worker"]
+    # Its own image: Docling, CPU PyTorch and the parsing models (~2.7 GB).
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+      target: worker
+    image: docs-assistant-worker:local
     environment: *api-environment
     depends_on:
       migrate:
