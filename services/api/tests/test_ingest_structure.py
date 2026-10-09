@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.ingest.models import BBox
+from app.ingest.models import BBox, Block, BlockKind, Page, ParsedDocument, Region
 from app.ingest.structure import (
     assign_sections,
     clean_heading,
@@ -11,6 +11,7 @@ from app.ingest.structure import (
     is_capitalised,
     normalize_bbox,
     numbered_depth,
+    with_sections,
 )
 
 
@@ -175,3 +176,41 @@ def test_continuation_box_is_unflipped_with_the_first_pages_height() -> None:
     )
     assert box.y0 == pytest.approx(100 / 595)
     assert box.y1 == pytest.approx(200 / 595)
+
+
+def test_a_short_capitalised_label_does_not_take_over_later_sections() -> None:
+    # EMA Mounjaro report: a questionnaire name and a table title appear as headings.
+    paths = _paths(
+        [
+            "2.6. Clinical efficacy",
+            "EQ-5D-5L",
+            None,
+            "SURPASS 1: Results at Week 40",
+            None,
+            "2.6.10. Conclusions on the clinical safety",
+            None,
+        ]
+    )
+    assert paths[2] == ["2.6. Clinical efficacy", "EQ-5D-5L"]
+    assert paths[6] == ["2.6. Clinical efficacy", "2.6.10. Conclusions on the clinical safety"]
+
+
+def test_with_sections_recomputes_paths_on_a_stored_parse() -> None:
+    def block(i: int, kind: BlockKind, text: str) -> Block:
+        box = BBox(x0=0.1, y0=0.1, x1=0.9, y1=0.2)
+        region = Region(page=1, bbox=box, char_start=0, char_end=len(text))
+        return Block(index=i, kind=kind, text=text, regions=[region], section_path=["stale"])
+
+    parsed = ParsedDocument(
+        pages=[Page(number=1, width_pt=612, height_pt=792, has_text_layer=True)],
+        blocks=[
+            block(0, BlockKind.HEADING, "1 Introduction"),
+            block(1, BlockKind.PARAGRAPH, "Text."),
+        ],
+        parser="test",
+    )
+
+    fresh = with_sections(parsed)
+
+    assert [b.section_path for b in fresh.blocks] == [["1 Introduction"], ["1 Introduction"]]
+    assert [b.heading_depth for b in fresh.blocks] == [1, None]

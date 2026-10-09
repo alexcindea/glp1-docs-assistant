@@ -38,7 +38,7 @@ from app.ingest.models import (
     TableCell,
 )
 from app.ingest.pdf import inspect_pages
-from app.ingest.structure import assign_sections, contiguous_ranges, normalize_bbox
+from app.ingest.structure import contiguous_ranges, normalize_bbox, with_sections
 
 _KINDS: dict[DocItemLabel, BlockKind] = {
     DocItemLabel.TITLE: BlockKind.TITLE,
@@ -115,20 +115,7 @@ class DoclingParser:
             if on_progress:
                 on_progress(done, len(selected))
 
-        headings, paths = assign_sections(
-            [b.kind in (BlockKind.HEADING, BlockKind.TITLE) for b in drafts],
-            [b.text for b in drafts],
-        )
-        blocks = [
-            b.model_copy(
-                update={
-                    "heading_depth": heading.depth if heading else None,
-                    "section_path": path,
-                }
-            )
-            for b, heading, path in zip(drafts, headings, paths, strict=True)
-        ]
-        return ParsedDocument(pages=selected, blocks=blocks, parser=parser_version())
+        return with_sections(ParsedDocument(pages=selected, blocks=drafts, parser=parser_version()))
 
     def _batches(self, pages: list[Page]) -> Iterator[tuple[int, int, bool]]:
         """(first page, last page, scanned) per batch: runs of like pages, cut to size."""

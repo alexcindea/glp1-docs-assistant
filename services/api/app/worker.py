@@ -35,6 +35,7 @@ from app.ingest.chunking import chunk_document
 from app.ingest.failures import Failure, describe
 from app.ingest.models import ParsedDocument
 from app.ingest.store import save_chunks, save_parse
+from app.ingest.structure import with_sections
 from app.jobs import ClaimedJob, claim_next, heartbeat, mark_failed_attempt, mark_succeeded
 from app.models import Document, DocumentFile, DocumentStatus, JobKind, ParsedRecord
 from app.observability import configure_logging
@@ -217,12 +218,19 @@ class IngestWorker:
             )
         if stored is None:
             raise LookupError("no stored parse to re-chunk; ingest the document again")
-        parsed = ParsedDocument.model_validate(stored)
+        # Section rules may have changed since the parse: recompute them (milliseconds).
+        parsed = with_sections(ParsedDocument.model_validate(stored))
         chunks = chunk_document(parsed)
         async with self.sessions.begin() as session:
             if not await mark_succeeded(session, job.id, self.worker_id):
                 raise _JobLostError
             await save_chunks(session, job.document_id, chunks)
+            # Keep the stored parse's section paths in step with the chunks'.
+            await session.execute(
+                update(ParsedRecord)
+                .where(ParsedRecord.document_id == job.document_id)
+                .values(parsed=parsed.model_dump(mode="json"))
+            )
             await self._mark_ready(session, job.document_id, parsed)
 
     @staticmethod

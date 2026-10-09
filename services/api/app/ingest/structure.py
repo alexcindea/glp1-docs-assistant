@@ -13,7 +13,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.ingest.models import BBox
+from app.ingest.models import BBox, BlockKind, ParsedDocument
 
 # Leading section number: "2", "2.4", "2.4.1.", "Section 3". The number must start
 # the heading and be followed by whitespace or the end.
@@ -34,15 +34,19 @@ def numbered_depth(heading: str) -> int | None:
 
 
 def is_capitalised(heading: str) -> bool:
-    """All letters upper case, and enough of them to be a heading, not an acronym."""
+    """All letters upper case, in at least two words: a heading, not an acronym or a
+    label like "EQ-5D-5L" (which would otherwise become top level and swallow
+    every later section)."""
     letters = [ch for ch in heading if ch.isalpha()]
-    return len(letters) >= 4 and all(ch.isupper() for ch in letters)
+    words = [w for w in heading.split() if any(ch.isalpha() for ch in w)]
+    return len(letters) >= 4 and len(words) >= 2 and all(ch.isupper() for ch in letters)
 
 
 @dataclass
 class HeadingInfo:
     depth: int
     title: str
+    numbered: bool = False
 
 
 def assign_sections(
@@ -65,15 +69,18 @@ def assign_sections(
             continue
         title = clean_heading(text)
         depth = numbered_depth(title)
+        numbered = depth is not None
         if depth is not None:
             last_numbered = depth
         elif is_capitalised(title):
             depth = last_numbered = 1
         else:
             depth = last_numbered + 1
-        while stack and stack[-1].depth >= depth:
+        # A numbered heading never sits under an unnumbered one: "2.6.10" goes back
+        # under "2.6", not under whatever label appeared since.
+        while stack and (stack[-1].depth >= depth or (numbered and not stack[-1].numbered)):
             stack.pop()
-        info = HeadingInfo(depth=depth, title=title)
+        info = HeadingInfo(depth=depth, title=title, numbered=numbered)
         stack.append(info)
         headings.append(info)
         paths.append([h.title for h in stack])
@@ -132,3 +139,24 @@ def normalize_bbox(
     x0, x1 = (min(max(v, 0.0), 1.0) for v in xs)
     y0, y1 = (min(max(v, 0.0), 1.0) for v in ys)
     return BBox(x0=x0, y0=y0, x1=x1, y1=y1)
+
+
+def with_sections(parsed: ParsedDocument) -> ParsedDocument:
+    """The document with every heading's depth and every block's section path set.
+
+    The parser calls this; re-chunking calls it again on the stored parse, so a
+    change to the heading rules applies without parsing again.
+    """
+    blocks = parsed.blocks
+    headings, paths = assign_sections(
+        [b.kind in (BlockKind.HEADING, BlockKind.TITLE) for b in blocks],
+        [b.text for b in blocks],
+    )
+    return parsed.model_copy(
+        update={
+            "blocks": [
+                b.model_copy(update={"heading_depth": h.depth if h else None, "section_path": path})
+                for b, h, path in zip(blocks, headings, paths, strict=True)
+            ]
+        }
+    )
