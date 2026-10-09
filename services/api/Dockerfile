@@ -2,8 +2,8 @@
 # workspace and lockfile live there:
 #   docker build -f services/api/Dockerfile --target api .      API (+ migrate)
 #   docker build -f services/api/Dockerfile --target worker .   ingest worker (Docling)
-# The worker image is large (CPU PyTorch, ~540 MB of models baked in); the API
-# image doesn't carry any of it.
+# Both run the local embedding model (CPU PyTorch, ~1.2 GB of weights, downloaded
+# once in its own stage). Only the worker carries Docling and its ~540 MB of models.
 
 FROM python:3.12.15-slim-bookworm AS build-base
 COPY --from=ghcr.io/astral-sh/uv:0.11.26 /uv /bin/uv
@@ -13,12 +13,20 @@ COPY pyproject.toml uv.lock ./
 COPY services/api/pyproject.toml services/api/
 
 # Dependencies first, in their own layer, so code changes don't reinstall them.
-FROM build-base AS build-api
+FROM build-base AS embed-deps
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --package api --no-install-workspace
+    uv sync --frozen --no-dev --package api --extra embed --no-install-workspace
+
+# The embedding model, pinned in app/embedding_models.py. This stage depends only on
+# that file and the dependencies, so a code change doesn't download it again.
+FROM embed-deps AS embedding-model
+COPY services/api/app/embedding_models.py services/api/docker/fetch_embedding_model.py /tmp/
+RUN HF_HOME=/models /app/.venv/bin/python /tmp/fetch_embedding_model.py /tmp/embedding_models.py
+
+FROM embed-deps AS build-api
 COPY services/api services/api
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --package api
+    uv sync --frozen --no-dev --package api --extra embed
 
 FROM build-base AS build-worker
 # OpenCV (used by RapidOCR) needs these to load, here and at runtime.
@@ -43,12 +51,13 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 RUN useradd --create-home --uid 10001 app
 # Separate layers, most stable first. Same paths as the build stage: the app is
-# installed in editable mode.
+# installed in editable mode. The embedding model joins Docling's in the same cache.
+COPY --from=embedding-model --chown=app:app /models/hub /app/.cache/huggingface/hub
 COPY --from=build-worker --chown=app:app /app/.cache /app/.cache
 COPY --from=build-worker --chown=app:app /app/.venv /app/.venv
 COPY --from=build-worker --chown=app:app /app/services /app/services
 WORKDIR /app/services/api
-# HF_HUB_OFFLINE: Docling never downloads at runtime; a missing model fails loudly.
+# HF_HUB_OFFLINE: models are never downloaded at runtime; a missing one fails loudly.
 # (RapidOCR has no such switch; its models are baked in, checked by a
 # `docker run --network none` load.)
 ENV PATH="/app/.venv/bin:$PATH" \
@@ -61,13 +70,16 @@ CMD ["python", "-m", "app.worker"]
 
 FROM python:3.12.15-slim-bookworm AS api
 RUN useradd --create-home --uid 10001 app
+COPY --from=embedding-model --chown=app:app /models /app/.cache/huggingface
 # Same path as the build stage: the app is installed in editable mode, and
 # migrations are found next to the package.
 COPY --from=build-api --chown=app:app /app /app
 WORKDIR /app/services/api
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    LOG_FORMAT=json
+    LOG_FORMAT=json \
+    HF_HOME=/app/.cache/huggingface \
+    HF_HUB_OFFLINE=1
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

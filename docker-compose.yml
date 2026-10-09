@@ -1,6 +1,7 @@
 name: docs-assistant
 
-# Full stack: `docker compose up --build` (no .env or API key needed: models are fakes).
+# Full stack: `docker compose up --build` (no .env or API key needed: the LLM is a fake
+# until phase 5; the embedding model is local and baked into the images).
 # Development: `docker compose up -d db phoenix`, then run the API, worker and web natively.
 # Every port is bound to 127.0.0.1: reachable from this machine only.
 
@@ -14,7 +15,7 @@ x-api-image: &api-image
 x-api-environment: &api-environment
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
   LLM_PROVIDER: ${LLM_PROVIDER:-fake}
-  EMBEDDER: ${EMBEDDER:-fake}
+  EMBEDDER: ${EMBEDDER:-qwen3-0.6b}
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
   OTEL_TRACES_ENDPOINT: http://phoenix:6006/v1/traces
 
@@ -76,7 +77,7 @@ services:
       retries: 20
 
   worker:
-    # Its own image: Docling, CPU PyTorch and the parsing models (~2.7 GB).
+    # Its own image: Docling and its parsing models, plus the embedding model.
     build:
       context: .
       dockerfile: services/api/Dockerfile

@@ -34,15 +34,19 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy .
-      # Docling's layout and table models (~500 MB) and RapidOCR's; downloaded once.
+      # Docling's layout and table models (~500 MB), RapidOCR's, and the embedding
+      # model the tests load (pinned in app/embedding_models.py); downloaded once.
       - uses: actions/cache@v6
         with:
           path: |
             ~/.cache/huggingface
             .venv/lib/python3.12/site-packages/rapidocr/models
-          key: docling-models-${{ hashFiles('uv.lock') }}
+          key: models-${{ hashFiles('uv.lock', 'services/api/app/embedding_models.py') }}
       # Builds services/db and runs the database tests against it (testcontainers).
       - run: uv run pytest
+      # The eval harness's own tests (recall metric, gold loader); from the repo root.
+      - run: uv run pytest
+        working-directory: .
 
   web:
     name: Web (lint, types, tests, build)
@@ -101,8 +105,11 @@ jobs:
           SKIP: web-format,web-lint
 
   stack:
-    name: Full stack comes up healthy and ingests a PDF
+    name: Full stack comes up healthy, ingests a PDF and searches it
     runs-on: ubuntu-latest
+    # The images as shipped: the real embedding model, baked in, loaded offline.
+    env:
+      EMBEDDER: qwen3-0.6b
     steps:
       - uses: actions/checkout@v7
       - name: Build and start every service, wait for health checks
@@ -127,6 +134,17 @@ jobs:
           chunks=$(curl --fail --silent http://127.0.0.1:8000/documents/$id/chunks | jq length)
           echo "$chunks chunks"
           [ "$chunks" -gt 0 ]
+          echo "$id" > document-id
+      - name: Search finds a passage with its page and box (hybrid retrieval, real embedder)
+        run: |
+          body=$(jq -n --arg id "$(cat document-id)" \
+            '{query: "identified risks in risk management", document_ids: [$id]}')
+          hit=$(curl --fail --silent --show-error -H 'content-type: application/json' \
+            -d "$body" http://127.0.0.1:8000/search | jq '.hits[0]')
+          echo "$hit" | jq '{ranks, page: .chunk.spans[0].page, text: .chunk.text[0:80]}'
+          # The top hit is about risks, and both searches found it.
+          echo "$hit" | jq -e '(.chunk.text | test("risk"; "i"))
+            and .chunk.spans[0].page >= 1 and .ranks.vector != null and .ranks.bm25 != null'
       - name: Logs on failure
         if: failure()
         run: docker compose logs
