@@ -24,6 +24,34 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-09 · first answer eval · three answerable questions failed although their answers
+  were right: the model cited the same fact stated elsewhere (Trulicity strengths in the review's
+  header table, 44% antibodies in the review's safety section, Mounjaro's maximum dose in the
+  label highlights) · Claude read the failures by hand, checked each new quote against the
+  corpus with the eval's own matcher, and added them as alternatives (`match: any`) to q009,
+  q023 and q029, the second edit to `evals/gold.jsonl`. It left out the label's "38% … an
+  additional 6%", which only implies 44%. q033 (SELECT trial results) was answered "not in
+  the report, the trial was still ongoing" with citations instead of refused; that stays a
+  failure for the strict metric and goes to the judge in phase 7.
+- 2026-10-09 · Claude estimated the follow-up rewrite at ~0.5 s · measured ~2 s per call on the
+  small model · rewriting every question lost on quality and speed in the eval, so only
+  follow-ups are rewritten.
+- 2026-10-09 · Claude's first rewrite prompt produced keyword queries ("Ozempic maximum dose") ·
+  they searched worse than the question as asked (the label's "maximum recommended dosage"
+  passage fell out of the top 10) · it now writes a full question.
+- 2026-10-09 · Claude's answer prompt refused "If I miss a Mounjaro dose, how long do I have?"
+  as personal medical advice in one of two runs · the rule now says what the documents tell
+  patients to do is not advice; three of three answered, "Should I switch…" still refused.
+- 2026-10-09 · reviewer on the answer pipeline · found that a reply cut off by the token cap
+  would be shown as "the documents don't answer this", that "aged [18-75]" lost its numbers
+  as a fake citation, that errors other than model errors broke the stream without a typed
+  ending, and that the stream hold-back had no test that could fail · all fixed with tests.
+- 2026-10-09 · first real answers · showed OpenAI's prompt caching made each question ~20%
+  dearer (every prompt written to the cache, none reused) · turned off.
+- 2026-10-09 · Claude checked OpenAI's current models on the official pricing page before
+  choosing · third-party price lists disagreed with each other and with OpenAI · the price
+  table in the code is copied from OpenAI's page, with the date.
+
 - 2026-10-09 · first CI run of phase 4 · two failures local runs never showed: the runner ran
   out of disk building images that now carry PyTorch and the models, and a vector search
   limited to one document returned nothing, because the approximate HNSW index can leave a
@@ -32,7 +60,7 @@ Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or chan
 - 2026-10-09 · Claude flagged gold item q004 as too strict: it accepted only one sentence
   ("The pen should be discarded 30 days after first use"), while the same label says it twice
   more (patient information p19, pen instructions p22), and retrieval was finding those · I
-  agreed and had Claude change it, the only edit to `evals/gold.jsonl` since it was written.
+  agreed and had Claude change it, the first edit to `evals/gold.jsonl` since it was written.
   The gold format gained `"match": "any"` (each passage answers on its own; the default "all"
   still needs every passage, as comparisons do). Fused recall@10 went from 0.76 to 0.79 from
   this correction alone, not from better retrieval.

@@ -17,6 +17,94 @@ Template:
 
 ---
 
+## 2026-10-09 — Answer eval: scored on evidence; wording left to the judge
+
+**Context:** Phase 5 needs a number for whole answers, before the LLM judge exists (phase 7).
+**Options:** pass/fail on evidence (answered citing the gold passage, or refused when it should)
+· an LLM judge now, uncalibrated · reading answers by hand each run
+**Decision:** `evals/answers.py` runs every gold question through the answer pipeline and passes
+it when it answers citing its gold passage (the same matching as retrieval recall), or refuses
+when the documents don't answer it. Answerable failures are split by whether retrieval had
+found the passage. Answer text and citations are saved with the results.
+**Why:** It is cheap (~$0.22 a run), deterministic to score, and says where a failure happened.
+First run 0.694; reading the failures showed three right answers citing the same fact stated
+elsewhere in the same document, so those gold items now accept that passage too (`match: any`,
+each new quote checked against the corpus). With that: **0.778** pass, answerable questions
+answered citing gold 0.774 (exactly the share where retrieval found the passage; no question
+failed once the model had its passage), unanswerable refused 0.8.
+**Consequences:** It cannot tell a right answer from a wrong one that cites the right passage;
+the judge will. q033 (SELECT trial results) is answered "not in the report; the trial was still
+ongoing", with citations, rather than refused: honest, but a failure here until the judge scores
+it. Since the model isn't deterministic, a question can flip between runs.
+
+## 2026-10-09 — Rewrite only follow-up questions before searching
+
+**Context:** "And for Mounjaro?" can't be searched alone. Rewriting every question would also
+strip attack text ("ignore all previous instructions…") from the search.
+**Options:** never rewrite · rewrite follow-ups only · rewrite every question
+**Decision:** Follow-ups only, with the small model (gpt-6-luna), into a full natural question,
+not keywords. `QUERY_REWRITE=always` stays available. A failed rewrite searches the question as
+asked.
+**Why:** Answer eval, 36 questions: follow-ups only passes 0.778 at 2.2 s median to first text;
+every question 0.75 at 3.2 s (the rewrite call takes ~2 s, not the ~0.5 s I expected), and it
+lost q001 to a worse search. Keyword rewrites hurt: "Ozempic maximum dose" lost the label's
+"maximum recommended dosage" passage from the top 10, which the question as asked ranks 6th.
+**Consequences:** A first question's attack text goes into the search query. q035 then misses
+its passage, but the model ignores the attack (tested), and even the clean question "What's the
+maximum dose of Ozempic?" misses it ("dose" against the label's "dosage"): a retrieval gap for
+phase 7 (a reranker or query expansion), not an injection one.
+
+## 2026-10-09 — Streaming answers: FastAPI's own SSE, every answer saved
+
+**Context:** The chat UI (phase 6) builds on this contract, and API types must be generated,
+never hand-written.
+**Options:** our own event types over server-sent events · the Vercel AI SDK stream protocol ·
+a plain JSON response after the whole answer
+**Decision:** `POST /answers` streams typed events through FastAPI's `EventSourceResponse`:
+`sources` (the passages, with spans), text `delta`s, then `done` (answer, citations, refusal,
+tokens, cost, timings, answer id) or a typed `error`. Each answer is saved to an `answers`
+table with its trace id.
+**Why:** No new dependency; the event types are in the OpenAPI schema with everything else;
+FastAPI keeps the request's database session open until the stream ends, sends keep-alive
+pings, and cancels the work, model call included, when the client leaves. Saving answers gives
+feedback (phase 6) something to point at and gives cost and latency over real use.
+**Consequences:** openapi-typescript 7 doesn't read OpenAPI 3.2's `itemSchema`, so the stream
+itself is typed `unknown`; the web app joins the four generated event types into one union.
+Error responses are declared as JSON explicitly, or FastAPI documents them as event streams.
+
+## 2026-10-09 — Citations by passage number; three ways to refuse
+
+**Context:** No uncited answers, and every claim must lead to a page and a box.
+**Options:** `[n]` markers in streamed text, mapped to chunks by us · strict JSON with a quote per
+claim (validates well, streams badly) · refusing below a retrieval score threshold
+**Decision:** Passages go to the model as numbered, quoted blocks; it cites `[n]`; we map `n` to
+the chunk and its spans, and drop numbers that name no passage. Refuse (1) when retrieval finds
+nothing, without calling the model, (2) when the model replies `NOT_FOUND` or `OUT_OF_SCOPE`,
+which is held back so it never streams as text, (3) when a finished reply cites nothing. Every
+refusal carries the three closest passages. A reply cut off by the token cap is an error, not a
+"not found".
+**Why:** Markers stream naturally. Fused (RRF) scores are ranks, not relevance, so there is no
+honest threshold, and a threshold can't catch a near miss like the SELECT trial question, where
+the retrieved text is on topic but holds no answer.
+**Consequences:** A highlight covers the whole cited chunk (median 104 tokens); citations carry
+`char_start`/`char_end` so narrowing to a sentence won't change the API. A reply that cites
+nothing has already streamed when it is refused, and clients replace it.
+
+## 2026-10-09 — OpenAI models per role, prompt caching off
+
+**Context:** CLAUDE.md left the exact models to phase 5; cost per question is a phase metric.
+**Options:** one strong model for every role · a strong model for answers and a small one for
+rewriting · OpenAI's automatic prompt caching on (the default) or off
+**Decision:** gpt-6.1-sol at low reasoning effort answers, gpt-6-luna without reasoning rewrites
+follow-ups, gpt-6-astra will judge (phase 7). Prompt caching is off. Models and effort are
+settings; prices live in `app/pricing.py`, copied from OpenAI's pricing page.
+**Why:** Sol costs a fifth of Astra and answered the checkpoint questions correctly at about
+$0.006 each. With caching on, each ~3k-token prompt was written to the cache at 25% over the
+input price and never reused, because every question gets different passages.
+**Consequences:** Prices must be updated by hand when OpenAI changes them; an unknown model is
+costed as unknown, not zero. The answer model is not deterministic (no temperature on reasoning
+models), so a gold question can flip between runs.
+
 ## 2026-10-09 — Embedding model: Qwen3-Embedding-0.6B, chosen by fused recall
 
 **Context:** The shortlist was bge-small-en-v1.5 and Qwen3-Embedding-0.6B. What matters is
