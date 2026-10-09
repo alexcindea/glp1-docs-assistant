@@ -102,6 +102,7 @@ cd services/api; uv run ruff check .; uv run mypy .
 cd apps/web; pnpm lint; pnpm typecheck; pnpm test
 uvx pre-commit run --all-files
 uv run python evals/run.py               # retrieval eval: recall@5/@10 per path (needs the ingested corpus)
+uv run python evals/answers.py           # answer eval: real model, both rewrite settings (~45 cents, ~7 min)
 uv run pytest evals                      # eval harness tests (from the repo root)
 uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
 ```

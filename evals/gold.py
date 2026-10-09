@@ -38,10 +38,11 @@ class GoldItem(BaseModel):
 
     @property
     def search_query(self) -> str:
-        """What retrieval searches for.
+        """What the retrieval eval (evals/run.py) searches for.
 
-        Follow-ups ("And for Mounjaro?") mean nothing alone. Until the LLM rewrites
-        them into standalone questions (phase 5), the earlier turns are prepended.
+        Follow-ups ("And for Mounjaro?") mean nothing alone, so the earlier turns
+        are prepended. This keeps the retrieval eval free of model calls; the
+        answer eval (evals/answers.py) uses the real rewrite (app.rewrite).
         """
         return " ".join([*self.history, self.question])
 
