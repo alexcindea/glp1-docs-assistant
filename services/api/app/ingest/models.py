@@ -36,6 +36,26 @@ class Region(BaseModel):
     char_end: int = Field(ge=0)
 
 
+def check_coverage(text: str, regions: list[Region], *, whole: bool) -> None:
+    """Every character maps to exactly one region, in order: citation mapping relies on it.
+
+    `whole`: a table's Markdown can't be split by page, so each region spans all of it.
+    """
+    length = len(text)
+    if whole:
+        if any((r.char_start, r.char_end) != (0, length) for r in regions):
+            raise ValueError("each region of a table must span the whole table text")
+        return
+    edges = [(r.char_start, r.char_end) for r in regions]
+    expected_start = 0
+    for start, end in edges:
+        if start != expected_start or end < start:
+            raise ValueError(f"regions must cover the text end to end, got {edges}")
+        expected_start = end
+    if expected_start != length:
+        raise ValueError(f"regions end at {expected_start}, text has {length} characters")
+
+
 class BlockKind(StrEnum):
     TITLE = "title"
     HEADING = "heading"
@@ -81,23 +101,7 @@ class Block(BaseModel):
 
     @model_validator(mode="after")
     def _regions_cover_text(self) -> Self:
-        """Every character maps to exactly one region, in order: citation mapping relies on it.
-
-        A table's Markdown can't be split by page, so each of its regions spans all of it.
-        """
-        length = len(self.text)
-        if self.kind == BlockKind.TABLE:
-            if any((r.char_start, r.char_end) != (0, length) for r in self.regions):
-                raise ValueError("each region of a table must span the whole table text")
-            return self
-        edges = [(r.char_start, r.char_end) for r in self.regions]
-        expected_start = 0
-        for start, end in edges:
-            if start != expected_start or end < start:
-                raise ValueError(f"regions must cover the text end to end, got {edges}")
-            expected_start = end
-        if expected_start != length:
-            raise ValueError(f"regions end at {expected_start}, text has {length} characters")
+        check_coverage(self.text, self.regions, whole=self.kind == BlockKind.TABLE)
         return self
 
 

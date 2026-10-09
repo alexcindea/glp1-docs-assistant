@@ -1,9 +1,12 @@
 """Settings, read from environment variables (and a .env file in development)."""
 
+import os
+import socket
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,7 +35,19 @@ class Settings(BaseSettings):
     embedder: Literal["fake"] = "fake"
     embedding_dimensions: int = 384
 
+    # Uploads
+    max_upload_mb: int = 100
+    max_pages: int = 2000
+
+    # Ingest worker and job queue
     worker_poll_interval_seconds: float = 2.0
+    worker_id: str = Field(default_factory=lambda: f"{socket.gethostname()}-{os.getpid()}")
+    ingest_batch_pages: int = 10
+    job_heartbeat_seconds: float = 10.0
+    # A running job whose heartbeat is older than this is presumed dead and reclaimed.
+    job_stale_after_seconds: float = 120.0
+    job_max_attempts: int = 3
+    job_retry_backoff_seconds: float = 30.0
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     log_format: Literal["console", "json"] = "console"
