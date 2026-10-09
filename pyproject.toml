@@ -12,6 +12,12 @@ package = false
 [tool.uv.sources]
 api = { workspace = true }
 
+# CPU-only PyTorch for Docling (see services/api/pyproject.toml).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.uv.workspace]
 members = ["services/api"]
 
@@ -20,3 +26,8 @@ members = ["services/api"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[dependency-groups]
+dev = [
+    "pillow>=12.3.0",
+]

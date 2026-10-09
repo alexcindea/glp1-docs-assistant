@@ -29,7 +29,8 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0 # astral publishes no short major tags
         with:
           enable-cache: true
-      - run: uv sync --all-packages --frozen
+      # The ingest extra (Docling, CPU PyTorch) is needed to type-check and test the parser.
+      - run: uv sync --all-packages --all-extras --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy .
