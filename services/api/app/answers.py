@@ -5,25 +5,28 @@ Each SSE message carries one event of app.answering as JSON, told apart by its
 describes them, so the web app's types are generated like every other type.
 
 The finished answer is saved (table `answers`): `done` is sent once it is,
-carrying its id for feedback. If saving fails, the answer is still delivered,
-without an id. A client that disconnects cancels the work, model call included.
+carrying its id for feedback (POST /answers/{id}/feedback). If saving fails, the
+answer is still delivered, without an id. A client that disconnects cancels the
+work, model call included.
 """
 
 import time
 import uuid
 from collections.abc import AsyncIterable
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import structlog
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.sse import EventSourceResponse
 from opentelemetry import trace
 from pydantic import BaseModel, Field, StringConstraints
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert
 
 from app.answering import AnswerEvent, DoneEvent, ErrorEvent, SourcesEvent, answer_question
 from app.db import DATABASE_ERRORS
-from app.errors import stream_error_responses
-from app.models import AnswerRecord
+from app.errors import ApiError, error_responses, stream_error_responses
+from app.models import AnswerFeedback, AnswerRecord
 from app.passages import check_documents
 from app.rewrite import Turn
 from app.state import AppStateDep, SessionDep
@@ -139,3 +142,34 @@ def _record(
 def _current_trace_id() -> str | None:
     context = trace.get_current_span().get_span_context()
     return format(context.trace_id, "032x") if context.is_valid else None
+
+
+class FeedbackRequest(BaseModel):
+    rating: Literal["up", "down"]
+    comment: Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)] | None = None
+
+
+class FeedbackOut(BaseModel):
+    answer_id: uuid.UUID
+    rating: Literal["up", "down"]
+    comment: str | None
+
+
+@router.post("/{answer_id}/feedback", responses=error_responses(404))
+async def give_feedback(
+    answer_id: uuid.UUID, request: FeedbackRequest, session: SessionDep
+) -> FeedbackOut:
+    """Thumbs up or down on an answer, with an optional comment. Sending it again replaces it."""
+    if await session.scalar(select(AnswerRecord.id).where(AnswerRecord.id == answer_id)) is None:
+        raise ApiError(status.HTTP_404_NOT_FOUND, "not_found", "No answer with this id.")
+    comment = request.comment or None  # an empty comment is no comment
+    await session.execute(
+        insert(AnswerFeedback)
+        .values(answer_id=answer_id, rating=request.rating, comment=comment)
+        .on_conflict_do_update(
+            index_elements=[AnswerFeedback.answer_id],
+            set_={"rating": request.rating, "comment": comment, "updated_at": func.now()},
+        )
+    )
+    await session.commit()
+    return FeedbackOut(answer_id=answer_id, rating=request.rating, comment=comment)

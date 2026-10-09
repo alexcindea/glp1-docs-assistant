@@ -279,3 +279,20 @@ class AnswerRecord(Base):
     first_token_ms: Mapped[float | None] = mapped_column(Float)
     total_ms: Mapped[float] = mapped_column(Float)
     trace_id: Mapped[str | None] = mapped_column(String(32))  # find it in Phoenix
+
+
+class AnswerFeedback(Base):
+    """A user's verdict on one answer; giving feedback again replaces it."""
+
+    __tablename__ = "answer_feedback"
+    __table_args__ = (CheckConstraint("rating IN ('up', 'down')", name="rating"),)
+
+    answer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("answers.id", ondelete="CASCADE"), primary_key=True
+    )
+    rating: Mapped[str] = mapped_column(String(4))
+    comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

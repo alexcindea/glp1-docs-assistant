@@ -18,7 +18,7 @@ from app.config import Settings
 from app.db import create_engine, create_sessionmaker
 from app.factory import create_app
 from app.llm import CompletionRequest, FakeLLMProvider, LLMError, ModelRole, Responder
-from app.models import AnswerRecord
+from app.models import AnswerFeedback, AnswerRecord
 from tests.test_search_api import _ready_document
 
 EVENTS: TypeAdapter[AnswerEvent] = TypeAdapter(AnswerEvent)
@@ -188,3 +188,53 @@ def test_errors_of_the_stream_are_documented_as_json(client: TestClient) -> None
 
     for status in ("404", "422", "500"):
         assert list(responses[status]["content"]) == ["application/json"]
+
+
+def feedback_rows(database_url: str) -> list[tuple[uuid.UUID, str, str | None]]:
+    async def load() -> list[tuple[uuid.UUID, str, str | None]]:
+        engine = create_engine(Settings(database_url=database_url))
+        async with create_sessionmaker(engine)() as session:
+            rows = await session.execute(
+                select(AnswerFeedback.answer_id, AnswerFeedback.rating, AnswerFeedback.comment)
+            )
+            result = [(a, r, c) for a, r, c in rows]
+        await engine.dispose()
+        return result
+
+    return asyncio.run(load())
+
+
+def test_feedback_is_saved_and_giving_it_again_replaces_it(
+    client: TestClient, migrated_database_url: str
+) -> None:
+    _ready_document(client, migrated_database_url)
+    use_llm(client, cite("antibodies"))
+    done = ask(client, {"question": "How many developed antibodies?"})[-1]
+    assert isinstance(done, DoneEvent)
+    assert done.answer_id is not None
+
+    first = client.post(f"/answers/{done.answer_id}/feedback", json={"rating": "up"})
+    second = client.post(
+        f"/answers/{done.answer_id}/feedback",
+        json={"rating": "down", "comment": "  Cites the wrong page.  "},
+    )
+
+    assert first.status_code == second.status_code == 200
+    assert second.json() == {
+        "answer_id": str(done.answer_id),
+        "rating": "down",
+        "comment": "Cites the wrong page.",
+    }
+    assert feedback_rows(migrated_database_url) == [
+        (done.answer_id, "down", "Cites the wrong page.")
+    ]
+
+
+def test_feedback_on_an_unknown_answer_is_a_404_and_a_bad_rating_a_422(
+    client: TestClient,
+) -> None:
+    unknown = uuid.uuid4()
+
+    assert client.post(f"/answers/{unknown}/feedback", json={"rating": "up"}).status_code == 404
+    bad = client.post(f"/answers/{unknown}/feedback", json={"rating": "meh"})
+    assert bad.status_code == 422
