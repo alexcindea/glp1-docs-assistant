@@ -31,3 +31,10 @@ target-version = "py312"
 dev = [
     "pillow>=12.3.0",
 ]
+
+# Eval harness tests: `uv run pytest evals` from the repo root. The eval
+# modules import each other by name, as they do when run as scripts.
+[tool.pytest.ini_options]
+testpaths = ["evals/tests"]
+pythonpath = ["evals"]
+addopts = "-ra --strict-markers"
