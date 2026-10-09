@@ -2,7 +2,7 @@
 
 import asyncio
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -13,10 +13,21 @@ from sqlalchemy.orm import selectinload
 
 from app.config import Settings
 from app.db import create_engine, create_sessionmaker
+from app.embeddings import Embedder, FakeEmbedder, Vector
 from app.ingest.failures import ParseError
 from app.ingest.models import ParsedDocument
 from app.jobs import enqueue
-from app.models import Chunk, Document, Job, JobKind, PageRecord, ParsedRecord, TableRecord
+from app.models import (
+    EMBEDDING_DIMENSIONS,
+    Chunk,
+    Document,
+    Job,
+    JobKind,
+    PageRecord,
+    ParsedRecord,
+    TableRecord,
+)
+from app.providers import build_embedder
 from app.worker import IngestWorker, docling_parser_factory
 from tests.factories import FakeParser, insert_document
 
@@ -25,9 +36,11 @@ pytestmark = pytest.mark.anyio
 Sessions = async_sessionmaker[AsyncSession]
 
 
-def _worker(sessions: Sessions, parser: FakeParser, **settings: Any) -> IngestWorker:
+def _worker(
+    sessions: Sessions, parser: FakeParser, embedder: Embedder | None = None, **settings: Any
+) -> IngestWorker:
     config = Settings(job_heartbeat_seconds=0.01, **settings)
-    return IngestWorker(config, sessions, lambda: parser)
+    return IngestWorker(config, sessions, lambda: parser, embedder or build_embedder(config))
 
 
 async def _document(sessions: Sessions, document_id: uuid.UUID) -> Document:
@@ -111,9 +124,9 @@ async def test_rechunk_reuses_the_stored_parse_and_keeps_the_document_ready(
     claimed_status: list[str] = []
     original = worker._rechunk
 
-    async def spying_rechunk(job: Any) -> None:
+    async def spying_rechunk(job: Any, log: Any) -> None:
         claimed_status.append((await _document(sessions, document_id)).status)
-        await original(job)
+        await original(job, log)
 
     worker._rechunk = spying_rechunk  # type: ignore[method-assign]
     result = await worker.poll()
@@ -125,6 +138,40 @@ async def test_rechunk_reuses_the_stored_parse_and_keeps_the_document_ready(
     assert len(after) == len(before)
     assert {c.id for c in after}.isdisjoint(before)  # replaced, not appended
     assert (await _document(sessions, document_id)).status == "ready"
+
+
+class CountingEmbedder(FakeEmbedder):
+    def __init__(self) -> None:
+        super().__init__(dimensions=EMBEDDING_DIMENSIONS)
+        self.embedded: list[str] = []
+
+    async def embed_documents(self, texts: Sequence[str]) -> list[Vector]:
+        self.embedded.extend(texts)
+        return await super().embed_documents(texts)
+
+
+async def test_chunks_are_stored_with_vectors_and_rechunking_reuses_them(
+    sessions: Sessions,
+) -> None:
+    document_id = await insert_document(sessions)
+    embedder = CountingEmbedder()
+    await _worker(sessions, FakeParser(), embedder).poll()
+
+    chunks = await _chunks(sessions, document_id)
+    assert chunks
+    assert all(c.embedding_model == "fake" and c.embedding is not None for c in chunks)
+    # What is embedded is the indexed text (section path + text), not the bare text.
+    (expected,) = await FakeEmbedder(EMBEDDING_DIMENSIONS).embed_documents([chunks[0].search_text])
+    assert chunks[0].embedding == pytest.approx(expected, abs=1e-6)
+    assert sorted(embedder.embedded) == sorted({c.search_text for c in chunks})
+
+    async with sessions.begin() as session:
+        enqueue(session, document_id, JobKind.RECHUNK, max_attempts=3, pages=0)
+    embedded_before = len(embedder.embedded)
+    await _worker(sessions, FakeParser(), embedder).poll()
+
+    assert len(await _chunks(sessions, document_id)) == len(chunks)
+    assert len(embedder.embedded) == embedded_before  # same texts: vectors reused
 
 
 async def test_a_failed_rechunk_keeps_the_current_chunks(
@@ -218,7 +265,9 @@ async def test_real_docling_ingest_keeps_provenance(sessions: Sessions) -> None:
     pytest.importorskip("docling")
     document_id = await insert_document(sessions)
     settings = Settings(ingest_batch_pages=1)
-    worker = IngestWorker(settings, sessions, docling_parser_factory(settings))
+    worker = IngestWorker(
+        settings, sessions, docling_parser_factory(settings), build_embedder(settings)
+    )
 
     await worker.poll()
 

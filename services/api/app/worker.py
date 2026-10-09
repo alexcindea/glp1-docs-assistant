@@ -18,7 +18,7 @@ import signal
 import tempfile
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
@@ -31,14 +31,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import Settings, get_settings
 from app.db import DATABASE_ERRORS, create_engine, create_sessionmaker, database_error_name
-from app.ingest.chunking import chunk_document
+from app.embeddings import Embedder, Vector
+from app.ingest.chunking import ChunkDraft, chunk_document
 from app.ingest.failures import Failure, describe
 from app.ingest.models import ParsedDocument
-from app.ingest.store import save_chunks, save_parse
+from app.ingest.store import chunk_search_texts, save_chunks, save_parse, stored_embeddings
 from app.ingest.structure import with_sections
 from app.jobs import ClaimedJob, claim_next, heartbeat, mark_failed_attempt, mark_succeeded
 from app.models import Document, DocumentFile, DocumentStatus, JobKind, ParsedRecord
 from app.observability import configure_logging
+from app.providers import build_embedder
 
 logger = structlog.get_logger("app.worker")  # not __main__ under `python -m`
 
@@ -100,10 +102,12 @@ class IngestWorker:
         settings: Settings,
         sessions: async_sessionmaker[AsyncSession],
         parser_factory: ParserFactory,
+        embedder: Embedder,
     ) -> None:
         self.settings = settings
         self.sessions = sessions
         self.parser_factory = parser_factory
+        self.embedder = embedder
         self.worker_id = settings.worker_id
 
     async def poll(self) -> PollResult:
@@ -129,7 +133,7 @@ class IngestWorker:
             if job.kind == JobKind.INGEST:
                 await self._ingest(job, progress, log)
             else:
-                await self._rechunk(job)
+                await self._rechunk(job, log)
             log.info("job.succeeded")
         except _JobLostError:
             log.warning("job.lost", reason="reclaimed by another worker; results discarded")
@@ -193,12 +197,13 @@ class IngestWorker:
             parsed = await asyncio.to_thread(parser.parse, path, on_progress=progress.update)
         seconds = time.perf_counter() - started
         chunks = chunk_document(parsed)
+        embeddings = await self._embed(job.document_id, chunks, log)
 
         async with self.sessions.begin() as session:
             if not await mark_succeeded(session, job.id, self.worker_id):
                 raise _JobLostError
             await save_parse(session, job.document_id, parsed)
-            await save_chunks(session, job.document_id, chunks)
+            await save_chunks(session, job.document_id, chunks, embeddings, self.embedder.name)
             await self._mark_ready(session, job.document_id, parsed)
         pages = len(parsed.pages)
         log.info(
@@ -211,7 +216,7 @@ class IngestWorker:
             seconds_per_page=round(seconds / max(pages, 1), 2),
         )
 
-    async def _rechunk(self, job: ClaimedJob) -> None:
+    async def _rechunk(self, job: ClaimedJob, log: structlog.typing.FilteringBoundLogger) -> None:
         async with self.sessions() as session:
             stored = await session.scalar(
                 select(ParsedRecord.parsed).where(ParsedRecord.document_id == job.document_id)
@@ -221,10 +226,11 @@ class IngestWorker:
         # Section rules may have changed since the parse: recompute them (milliseconds).
         parsed = with_sections(ParsedDocument.model_validate(stored))
         chunks = chunk_document(parsed)
+        embeddings = await self._embed(job.document_id, chunks, log)
         async with self.sessions.begin() as session:
             if not await mark_succeeded(session, job.id, self.worker_id):
                 raise _JobLostError
-            await save_chunks(session, job.document_id, chunks)
+            await save_chunks(session, job.document_id, chunks, embeddings, self.embedder.name)
             # Keep the stored parse's section paths in step with the chunks'.
             await session.execute(
                 update(ParsedRecord)
@@ -232,6 +238,31 @@ class IngestWorker:
                 .values(parsed=parsed.model_dump(mode="json"))
             )
             await self._mark_ready(session, job.document_id, parsed)
+
+    async def _embed(
+        self,
+        document_id: uuid.UUID,
+        chunks: Sequence[ChunkDraft],
+        log: structlog.typing.FilteringBoundLogger,
+    ) -> list[Vector]:
+        """A vector per chunk. Done before the write transaction opens, so the chunks
+        are saved with their vectors in one go. Vectors already stored for the same
+        indexed text and model are reused, so re-chunking only embeds what changed."""
+        texts = chunk_search_texts(chunks)
+        async with self.sessions() as session:
+            known = await stored_embeddings(session, document_id, self.embedder.name)
+        missing = list(dict.fromkeys(t for t in texts if t not in known))
+        started = time.perf_counter()
+        if missing:
+            known.update(zip(missing, await self.embedder.embed_documents(missing), strict=True))
+        log.info(
+            "embed.done",
+            model=self.embedder.name,
+            embedded=len(missing),
+            reused=len(set(texts)) - len(missing),
+            seconds=round(time.perf_counter() - started, 1),
+        )
+        return [known[text] for text in texts]
 
     @staticmethod
     async def _mark_ready(
@@ -259,7 +290,10 @@ async def run_worker(
 ) -> None:
     engine = create_engine(settings)
     worker = IngestWorker(
-        settings, create_sessionmaker(engine), parser_factory or docling_parser_factory(settings)
+        settings,
+        create_sessionmaker(engine),
+        parser_factory or docling_parser_factory(settings),
+        build_embedder(settings),
     )
     # Host, port and database only: never log credentials.
     target = f"{engine.url.host}:{engine.url.port or 5432}/{engine.url.database}"

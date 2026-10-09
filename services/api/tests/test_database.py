@@ -117,7 +117,8 @@ async def _insert_span(url: str, x1: float) -> None:
             chunk_id = await conn.scalar(
                 text(
                     "INSERT INTO chunks (document_id, seq, kind, text, section_path,"
-                    " token_count, chunker) VALUES (:d, 0, 'text', 'hi', '{}', 1, 't')"
+                    " search_text, token_count, chunker)"
+                    " VALUES (:d, 0, 'text', 'hi', '{}', 'hi', 1, 't')"
                     " RETURNING id"
                 ),
                 {"d": document_id},

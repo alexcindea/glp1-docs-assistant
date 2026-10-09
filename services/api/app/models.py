@@ -10,6 +10,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -148,6 +149,20 @@ class Chunk(Base):
     __table_args__ = (
         UniqueConstraint("document_id", "seq"),
         CheckConstraint("kind IN ('text', 'table')", name="kind"),
+        # BM25 (pg_textsearch). Queried as `search_text <@> to_bm25query(q, 'ix_chunks_bm25')`.
+        Index(
+            "ix_chunks_bm25",
+            "search_text",
+            postgresql_using="bm25",
+            postgresql_with={"text_config": "english"},
+        ),
+        # Approximate nearest neighbours by cosine distance (`embedding <=> query`).
+        Index(
+            "ix_chunks_embedding",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
     )
 
     # Short integer ids: they are what the model cites in phase 5.
@@ -157,6 +172,12 @@ class Chunk(Base):
     kind: Mapped[str] = mapped_column(String(16))  # "text" or "table"
     text: Mapped[str] = mapped_column(Text)  # the citeable text
     section_path: Mapped[list[str]] = mapped_column(ARRAY(Text))
+    # What retrieval indexes: section path + text (app.retrieval.search_text). Never cited.
+    search_text: Mapped[str] = mapped_column(Text)
+    # search_text embedded by `embedding_model`. Null only for chunks stored before
+    # embeddings existed; the worker always writes chunks with their vectors.
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    embedding_model: Mapped[str | None] = mapped_column(String(128))
     token_count: Mapped[int] = mapped_column(Integer)
     table_id: Mapped[int | None] = mapped_column(ForeignKey("tables.id", ondelete="SET NULL"))
     chunker: Mapped[str] = mapped_column(String(32))  # version that produced it

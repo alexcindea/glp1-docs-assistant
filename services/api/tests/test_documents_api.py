@@ -13,6 +13,7 @@ from app.db import create_engine, create_sessionmaker
 from app.factory import create_app
 from app.ingest.chunking import chunk_document
 from app.models import Document, Job
+from app.providers import build_embedder
 from app.worker import IngestWorker
 from tests.factories import FIXTURE_PDF, FakeParser, fake_parsed
 
@@ -34,7 +35,10 @@ def _run_worker_once(database_url: str) -> None:
 
     async def run() -> None:
         engine = create_engine(Settings(database_url=database_url))
-        worker = IngestWorker(Settings(), create_sessionmaker(engine), FakeParser)
+        settings = Settings()
+        worker = IngestWorker(
+            settings, create_sessionmaker(engine), FakeParser, build_embedder(settings)
+        )
         await worker.poll()
         await engine.dispose()
 
