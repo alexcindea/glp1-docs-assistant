@@ -112,6 +112,13 @@ jobs:
       EMBEDDER: qwen3-0.6b
     steps:
       - uses: actions/checkout@v7
+      # The images carry CPU PyTorch twice and ~1.7 GB of models; building them needs
+      # more than the runner's ~14 GB free. Its preinstalled SDKs (unused) take ~25 GB.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune --all --force
+          df -h /
       - name: Build and start every service, wait for health checks
         run: docker compose up --build --detach --wait --wait-timeout 300
       - name: API is ready and the web health page renders
