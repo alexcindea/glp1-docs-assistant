@@ -11,11 +11,10 @@ from typing import Annotated
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
-from app.documents import ChunkOut
 from app.errors import ApiError, error_responses
-from app.models import Chunk, Document
+from app.models import Document
+from app.passages import SearchHit, load_hits
 from app.retrieval import retrieve
 from app.state import AppStateDep, SessionDep
 
@@ -27,21 +26,6 @@ class SearchRequest(BaseModel):
     # Only these documents; null or omitted searches all of them.
     document_ids: list[uuid.UUID] | None = Field(default=None, min_length=1)
     limit: int = Field(default=10, ge=1, le=50)
-
-
-class PathRanks(BaseModel):
-    """1-based rank in each search path; null when that path didn't find the chunk."""
-
-    vector: int | None
-    bm25: int | None
-
-
-class SearchHit(BaseModel):
-    document_id: uuid.UUID
-    filename: str
-    score: float  # reciprocal rank fusion: higher is better
-    ranks: PathRanks
-    chunk: ChunkOut
 
 
 class SearchResponse(BaseModel):
@@ -60,28 +44,7 @@ async def search(request: SearchRequest, state: AppStateDep, session: SessionDep
         limit=request.limit,
         document_ids=request.document_ids,
     )
-    rows = await session.execute(
-        select(Chunk, Document.filename)
-        .join(Document, Document.id == Chunk.document_id)
-        .where(Chunk.id.in_([f.chunk_id for f in fused]))
-        .options(selectinload(Chunk.spans))
-    )
-    chunks = {chunk.id: (chunk, filename) for chunk, filename in rows}
-    hits = []
-    for f in fused:
-        if f.chunk_id not in chunks:  # replaced by a re-chunk since it was found
-            continue
-        chunk, filename = chunks[f.chunk_id]
-        hits.append(
-            SearchHit(
-                document_id=chunk.document_id,
-                filename=filename,
-                score=f.score,
-                ranks=PathRanks(vector=f.ranks.get("vector"), bm25=f.ranks.get("bm25")),
-                chunk=ChunkOut.model_validate(chunk, from_attributes=True),
-            )
-        )
-    return SearchResponse(query=request.query, hits=hits)
+    return SearchResponse(query=request.query, hits=await load_hits(session, fused))
 
 
 async def _check_documents(session: SessionDep, ids: list[uuid.UUID]) -> None:
