@@ -16,9 +16,11 @@ type Props = {
   selected: number | null; // passage shown in the side panel, if it is from this turn
   onSelect: (n: number) => void;
   onRetry: (question: string) => void;
+  onEvidence: () => void; // show every passage the answer was given
 };
 
-export function TurnView({ turn, selected, onSelect, onRetry }: Props) {
+export function TurnView(props: Props) {
+  const { turn } = props;
   const rewritten = turn.query !== null && turn.query !== turn.question;
   return (
     <article
@@ -33,17 +35,12 @@ export function TurnView({ turn, selected, onSelect, onRetry }: Props) {
           Searched for: {turn.query}
         </p>
       )}
-      <TurnBody
-        turn={turn}
-        selected={selected}
-        onSelect={onSelect}
-        onRetry={onRetry}
-      />
+      <TurnBody {...props} />
     </article>
   );
 }
 
-function TurnBody({ turn, selected, onSelect, onRetry }: Props) {
+function TurnBody({ turn, selected, onSelect, onRetry, onEvidence }: Props) {
   switch (turn.status) {
     case "searching":
       return (
@@ -79,12 +76,23 @@ function TurnBody({ turn, selected, onSelect, onRetry }: Props) {
             onCite={onSelect}
           />
           <CitedSources turn={turn} selected={selected} onSelect={onSelect} />
-          <Meta done={turn.done} />
+          <Meta
+            done={turn.done}
+            sources={turn.sources.length}
+            onEvidence={onEvidence}
+          />
         </div>
       );
     case "refused":
       return (
-        <RefusalCard turn={turn} selected={selected} onSelect={onSelect} />
+        <div className="space-y-2">
+          <RefusalCard turn={turn} selected={selected} onSelect={onSelect} />
+          <Meta
+            done={turn.done}
+            sources={turn.sources.length}
+            onEvidence={onEvidence}
+          />
+        </div>
       );
     case "failed":
       return (
@@ -122,7 +130,11 @@ function TurnBody({ turn, selected, onSelect, onRetry }: Props) {
   }
 }
 
-function CitedSources({ turn, selected, onSelect }: Omit<Props, "onRetry">) {
+function CitedSources({
+  turn,
+  selected,
+  onSelect,
+}: Pick<Props, "turn" | "selected" | "onSelect">) {
   const citations = turn.done?.citations ?? [];
   if (!citations.length) return null;
   return (
@@ -142,7 +154,11 @@ function CitedSources({ turn, selected, onSelect }: Omit<Props, "onRetry">) {
   );
 }
 
-function RefusalCard({ turn, selected, onSelect }: Omit<Props, "onRetry">) {
+function RefusalCard({
+  turn,
+  selected,
+  onSelect,
+}: Pick<Props, "turn" | "selected" | "onSelect">) {
   const refusal = turn.done?.refusal;
   if (!refusal) return null;
   const outOfScope = refusal.reason === "out_of_scope";
@@ -244,14 +260,36 @@ function SourceButton({
   );
 }
 
-function Meta({ done }: { done: Schemas["DoneEvent"] | null }) {
+function Meta({
+  done,
+  sources,
+  onEvidence,
+}: {
+  done: Schemas["DoneEvent"] | null;
+  sources: number;
+  onEvidence: () => void;
+}) {
   if (!done) return null;
   const seconds = (done.timings.total_ms / 1000).toFixed(1);
   const cost =
     done.usage.cost_usd === null ? null : `$${done.usage.cost_usd.toFixed(4)}`;
   return (
-    <p className="text-muted-foreground text-xs">
-      {[`${seconds} s`, cost, done.model].filter(Boolean).join(" · ")}
+    <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs">
+      {sources > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={onEvidence}
+            className="hover:text-foreground underline decoration-dotted underline-offset-2"
+          >
+            Evidence: {sources} passages
+          </button>
+          <span aria-hidden>·</span>
+        </>
+      )}
+      <span>
+        {[`${seconds} s`, cost, done.model].filter(Boolean).join(" · ")}
+      </span>
     </p>
   );
 }

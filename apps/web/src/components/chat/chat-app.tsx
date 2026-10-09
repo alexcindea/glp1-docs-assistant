@@ -5,12 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import type { DocumentOut } from "@/lib/documents";
 
 import { DocumentFilter } from "./document-filter";
-import { PassagePanel } from "./passage-panel";
 import { QuestionForm } from "./question-form";
+import { SourcePanel, type PanelState } from "./source-panel";
 import { TurnView } from "./turn-view";
 import { useChat } from "./use-chat";
-
-type Selection = { turnId: string; n: number };
 
 type Props = {
   documents: DocumentOut[];
@@ -18,14 +16,14 @@ type Props = {
 };
 
 /**
- * The chat: questions and answers on the left; on the right, the passage
- * behind the citation last clicked. On narrow screens the passage opens as a
- * full-screen sheet instead.
+ * The chat: questions and answers on the left; on the right, the PDF page
+ * behind the citation last clicked, with the passage highlighted, or the
+ * answer's evidence. On narrow screens the panel opens as a full-screen sheet.
  */
 export function ChatApp({ documents, documentsError }: Props) {
   const { turns, busy, ask, stop } = useChat();
   const [filter, setFilter] = useState<string[]>([]);
-  const [selection, setSelection] = useState<Selection | null>(null);
+  const [panel, setPanel] = useState<PanelState | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
   const lastText = turns.at(-1)?.text.length ?? 0;
@@ -33,23 +31,34 @@ export function ChatApp({ documents, documentsError }: Props) {
     bottom.current?.scrollIntoView({ block: "end" });
   }, [turns.length, lastText]);
 
-  const selectedTurn = selection
-    ? turns.find((t) => t.id === selection.turnId)
+  const panelTurn = panel
+    ? turns.find((t) => t.id === panel.turnId)
     : undefined;
-  const hit = selection && selectedTurn?.sources[selection.n - 1];
-  const passage =
-    selection && hit
-      ? {
-          n: selection.n,
-          hit,
-          cited:
-            selectedTurn.done?.citations.some((c) => c.n === selection.n) ??
-            false,
-        }
-      : null;
 
-  const panel = (
-    <PassagePanel passage={passage} onClose={() => setSelection(null)} />
+  function openSource(turnId: string, n: number) {
+    // Timed from here to the highlight on screen (see the PDF viewer).
+    performance.clearMarks("citation-click");
+    performance.mark("citation-click");
+    setPanel({ turnId, view: "source", n, focusKey: crypto.randomUUID() });
+  }
+
+  function openEvidence(turnId: string) {
+    setPanel((current) => ({
+      turnId,
+      view: "evidence",
+      n: current?.turnId === turnId ? current.n : null,
+      focusKey: current?.focusKey ?? crypto.randomUUID(),
+    }));
+  }
+
+  const side = (
+    <SourcePanel
+      turn={panelTurn}
+      panel={panel}
+      onView={(view) => setPanel((current) => current && { ...current, view })}
+      onOpen={(n) => panelTurn && openSource(panelTurn.id, n)}
+      onClose={() => setPanel(null)}
+    />
   );
 
   return (
@@ -74,8 +83,13 @@ export function ChatApp({ documents, documentsError }: Props) {
                 <TurnView
                   key={turn.id}
                   turn={turn}
-                  selected={selection?.turnId === turn.id ? selection.n : null}
-                  onSelect={(n) => setSelection({ turnId: turn.id, n })}
+                  selected={
+                    panel?.turnId === turn.id && panel.view === "source"
+                      ? panel.n
+                      : null
+                  }
+                  onSelect={(n) => openSource(turn.id, n)}
+                  onEvidence={() => openEvidence(turn.id)}
                   onRetry={(question) => void ask(question, filter)}
                 />
               ))
@@ -100,17 +114,17 @@ export function ChatApp({ documents, documentsError }: Props) {
       </section>
       <aside
         className="bg-muted/20 hidden min-h-0 border-l lg:block"
-        aria-label="Source passage"
+        aria-label="Sources"
       >
-        {panel}
+        {side}
       </aside>
-      {passage && (
+      {panel && panelTurn && (
         <div
           className="bg-background fixed inset-0 z-40 flex flex-col lg:hidden"
           role="dialog"
-          aria-label="Source passage"
+          aria-label="Sources"
         >
-          {panel}
+          {side}
         </div>
       )}
     </div>
