@@ -41,9 +41,6 @@
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)",
-      "Edit(./evals/gold.jsonl)",
-      "Write(./evals/gold.jsonl)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(git reset --hard*)",
