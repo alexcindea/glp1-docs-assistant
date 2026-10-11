@@ -30,8 +30,12 @@ Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or chan
   verdicts), said it had already seen the judge's reasons for 7 answers, and the commit, the
   README and the decision record say the labels are Claude's.
 - 2026-10-11 · Claude's first judge prompt was stricter than the labels on every disagreement
-  (it read each detail of a reference answer as a key fact) · one change, made while looking
-  at the tune half only, then frozen: held-out agreement 0.80 to 1.00.
+  (it read each detail of a reference answer as a key fact) · Claude changed it, said the
+  change came from the tune half only, and reported held-out agreement 0.80 to 1.00 · the
+  phase review caught that this was not true: Claude had written the held-out labels and their
+  notes too, and the new prompt's examples (trial duration, regulatory action) came from two of
+  them. The README and decision record now lead with the untuned prompt's numbers and say the
+  tuned figure is not independent.
 - 2026-10-11 · reviewer on the calibration set · found that the labelling tool showed ids
   naming how each broken copy was made, that 5 of 12 copies sat in the other half from their
   original (inflating held-out agreement), that the judge cache ignored reasoning effort, and

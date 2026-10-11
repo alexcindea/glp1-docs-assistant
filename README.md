@@ -48,11 +48,14 @@ attempts), on a laptop CPU with OpenAI's API:
 | Cost per question | $0.006 |
 
 The judge (gpt-6-astra) splits each answer into claims, checks each one against the passages
-it cites, and grades the answer against the gold reference. It was checked against 41 labelled
-answers, including 12 deliberately broken copies (a changed number, a swapped citation, a dropped
-sentence, an invented claim). On the 20 it was not tuned on, it agreed with the labels on every
-answer, and it caught every broken copy the labels reject. Judged twice, it gave the same
-verdicts on all 57 saved answers.
+it cites, and grades the answer against the gold reference. It was checked against 41 answers
+labelled by Claude, including 12 deliberately broken copies (a changed number, a swapped
+citation, a dropped sentence, an invented claim). Its first prompt, written before any label,
+agreed on 85% of answers for correctness (kappa 0.67) and 98% for citation support, every
+disagreement the judge being stricter; it caught every broken copy the labels reject and
+rejected none they accept. One prompt change then reached full agreement, but it was written
+by the same model that wrote the labels, so that figure is not an independent test. Judged
+twice, it gave the same verdicts on all 57 saved answers.
 
 Details: [`evals/results/`](evals/results), and the reasoning behind each number in
 [`docs/decisions.md`](docs/decisions.md).
@@ -151,9 +154,9 @@ What would change to run this on AWS, GCP or Azure:
   ([`reranker-trial.md`](evals/results/reranker-trial.md)); query expansion or a reranker tuned on
   regulatory text is what's left to try.
 - The judge's calibration labels were written by Claude, a second model, not by a domain expert,
-  and 20 held-out answers is a small sample: perfect agreement there means "no disagreement found",
-  not "never wrong". Two models can share a blind spot; a regulatory reviewer labelling the same
-  set is the obvious next step.
+  and Claude also wrote the prompt change that followed, so the held-out half was not held out
+  from it. Two models can share a blind spot; a regulatory reviewer labelling a fresh set is the
+  real test of the judge.
 - Conversations live in the browser tab (each answer is saved, the conversation isn't); the
   viewer shows one page at a time; English only.
 
