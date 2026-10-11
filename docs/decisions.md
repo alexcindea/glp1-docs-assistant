@@ -17,6 +17,49 @@ Template:
 
 ---
 
+## 2026-10-11 — No reranker: three cross-encoders all ranked worse than fusion
+
+**Context:** Every answerable question the app fails is a retrieval miss, and phase 5 left
+"a reranker or query expansion" for phase 7.
+**Options:** a local cross-encoder over the fused top 30 · query expansion · leave retrieval as is
+**Decision:** No reranker. The trial (`evals/reranker_trial.py`) stays as the record.
+**Why:** The bar was set before running: recall@5 up by at least 2 of 31 questions, under 0.5 s
+added on CPU. Fused alone: recall@5 0.645, @10 0.79. MiniLM-L6 (Apache-2.0) 0.597 / 0.726,
++0.77 s; mxbai-rerank-xsmall (Apache-2.0) 0.532 / 0.613, +51 s; bge-reranker-base (MIT)
+0.435 / 0.613, +4.3 s. All three are trained on web search; our candidates are near-duplicate
+regulatory passages (the same warning in five labels) and OCR text, where they did worse
+than rank fusion. The right passage is in the fused top 30 for 0.871 of questions, so there is
+room for a better ordering, just not from these models.
+**Consequences:** The retrieval gap stays (wording mismatches, long scanned passages). Next to
+try: query expansion with the small model, or a reranker tuned on this kind of text, each
+measured the same way.
+
+## 2026-10-11 — Answer judge: claims checked against their citations, calibrated on labelled answers
+
+**Context:** The evidence eval can't tell a right answer from a wrong one that cites the right
+passage, and fails honest answers such as q033 ("the report has no SELECT results").
+**Options:** one 1-5 score per answer · yes/no per criterion, with the answer split into claims
+checked against the passages they cite · citation checks without a model (text overlap)
+**Decision:** gpt-6-astra (medium) returns the answer's claims (the passages each cites and
+which passages back it), a reason, and `correct` against the gold reference, as strict
+structured output (`output_schema` in `LLMProvider`). Citation recall and precision are counted
+from the claims in code; refusals are scored without the judge. Verdicts are cached by prompt
+version, model, effort and request. It is calibrated on 41 labelled answers: 29 real ones and
+12 deliberately broken copies (changed number, swapped citation, dropped sentence, invented
+claim), split per question into a half the prompt may be tuned on and a held-out half.
+**Why:** Yes/no labels are quick to give and compare, and the claims give citation metrics for
+free. With most real answers right, broken copies are what show whether the judge catches
+errors. Prompt v1 agreed with the labels on 0.80 of held-out answers (kappa 0.58), every miss
+the judge being stricter: it read every detail of a reference answer as a key fact. One change
+from the tune half (key facts are what the question asks) gave v2: 20 of 20 held-out on both
+criteria, 9 of 9 rejected broken copies caught, the same verdicts when judging all 57 saved
+answers twice. On the gold set: 0.806 judged correct, 99% of claims backed by their citation,
+84% of citation marks backing their claim; $0.023 an answer.
+**Consequences:** The labels are Claude's: mine all said "yes" and were discarded. Claude
+labelled from a blinded copy but had seen the judge's reasons for 7 real answers. Two models
+can share a blind spot, and 20 held-out answers is small; a domain expert labelling the same
+set is the real test. Changing the prompt means a new version and new calibration.
+
 ## 2026-10-11 — Viewer assets: pdf.js's decoders yes, its GPL fonts no
 
 **Context:** Scanned pages need pdf.js's image decoders, which `pdfjs-dist` ships alongside

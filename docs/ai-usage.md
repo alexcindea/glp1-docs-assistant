@@ -24,6 +24,31 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-11 · my calibration labels answered "yes" to every prompt, note included, in about
+  a minute · Claude stopped before building on them (an invented sentence can't be "backed")
+  and asked; I had Claude label instead · it labelled from a blinded copy (no ids, kinds or
+  verdicts), said it had already seen the judge's reasons for 7 answers, and the commit, the
+  README and the decision record say the labels are Claude's.
+- 2026-10-11 · Claude's first judge prompt was stricter than the labels on every disagreement
+  (it read each detail of a reference answer as a key fact) · one change, made while looking
+  at the tune half only, then frozen: held-out agreement 0.80 to 1.00.
+- 2026-10-11 · reviewer on the calibration set · found that the labelling tool showed ids
+  naming how each broken copy was made, that 5 of 12 copies sat in the other half from their
+  original (inflating held-out agreement), that the judge cache ignored reasoning effort, and
+  that the strict-schema conversion would break on dict fields, unions and described nested
+  models · all fixed before labelling, with tests.
+- 2026-10-11 · Claude's first broken-copy generator flattened a table answer into one line ·
+  Claude caught it reading the generated cases.
+- 2026-10-11 · the first full judge run crashed writing its results, after every model call ·
+  the verdicts were cached, so the rerun cost nothing; the new eval smoke test fails with that
+  fix undone.
+- 2026-10-11 · line coverage first read 89% with the feedback route "untested", though a test
+  covers it · Claude found coverage wasn't following SQLAlchemy's greenlets; measured properly
+  it is 91%, core logic 99-100%. Four uncovered guards got tests.
+- 2026-10-11 · Claude expected a cross-encoder reranker to close part of the retrieval gap
+  (phase 5 record) · the trial showed all three tried ranked worse than fusion alone and were
+  slower on CPU · dropped; the trial is kept as the record.
+
 - 2026-10-11 · fixing the review's phone-dialog point, Claude found by checking focus in a real
   browser that its own answer renderer remounted every citation chip on every streamed word
   (a new component type each render), and that making the page inert took focus away before
