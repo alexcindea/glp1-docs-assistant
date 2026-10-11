@@ -1,0 +1,2878 @@
+{
+  "measured_at": "2026-10-11T09:35:54+00:00",
+  "judge_model": "gpt-6-astra (medium)",
+  "prompt_version": "judge-v1",
+  "by_rewrite_setting": {
+    "follow_ups": {
+      "summary": {
+        "questions": 36,
+        "judged": 29,
+        "correct": 0.694,
+        "answers_fully_backed": 0.966,
+        "claims": 86,
+        "citation_recall": 0.988,
+        "citation_precision": 0.854,
+        "unsupported_claims": 0.012,
+        "judge_cost_usd_mean": 0.0226
+      },
+      "self_agreement": null,
+      "items": [
+        {
+          "id": "q001",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference answer\u2019s 24-month shelf life, and passage 8 supports the pen sizes and stability-data basis.",
+          "details": [
+            {
+              "claim": "The FDA accepted a 24-month shelf life for Byetta\u2019s multiple-dose, prefilled 1.2 mL and 2.4 mL pens at approval in 2005, based on submitted stability data.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            }
+          ],
+          "cost_usd": 0.01434,
+          "all_backed": true
+        },
+        {
+          "id": "q002",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both age ranges exactly as stated in the reference answer and passage 2.",
+          "details": [
+            {
+              "claim": "The FDA waived Byetta's pediatric study requirement for ages 0 through 11 years.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "The FDA deferred Byetta's pediatric studies for ages 12 through 16 years.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01483,
+          "all_backed": true
+        },
+        {
+          "id": "q003",
+          "correct": false,
+          "judged": true,
+          "claims": 6,
+          "backed": 6,
+          "backed_by_own": 6,
+          "marks": 9,
+          "marks_ok": 6,
+          "reason": "The answer does not identify 5 mcg twice daily as the starting dose or explicitly state escalation to 10 mcg twice daily after one month. It also omits administration within 60 minutes before the morning and evening meals and the instruction not to administer after a meal; its affirmative claims are supported by the supplied passages.",
+          "details": [
+            {
+              "claim": "BYETTA dosing is 5 mcg or 10 mcg twice daily.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "The dose may be increased after 30 days.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "Before first use, patients should read the Patient Information and Pen User Manual.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "Before first use, patients should receive injection training from their healthcare provider.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "Patients should perform New Pen Set-Up only once for each new pen, not before every injection.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "BYETTA is injected under the skin of the thigh, abdomen, or upper arm.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.02925,
+          "all_backed": true
+        },
+        {
+          "id": "q004",
+          "correct": false,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer correctly gives the 30-day limit and the earlier-expiration condition, but omits the reference answer\u2019s key instruction to discard the pen after 30 days even if drug remains.",
+          "details": [
+            {
+              "claim": "A pen can be used for up to 30 days after first use, or until the expiration date printed on the pen label, whichever comes first.",
+              "cites": [
+                2,
+                9
+              ],
+              "supported_by": [
+                2,
+                9
+              ]
+            }
+          ],
+          "cost_usd": 0.01892,
+          "all_backed": true
+        },
+        {
+          "id": "q005",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer matches the reference answer and is directly supported by passage 6.",
+          "details": [
+            {
+              "claim": "The maximum recommended dose of Ozempic is 2 mg once weekly.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.0113,
+          "all_backed": true
+        },
+        {
+          "id": "q006",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer includes all key instructions in the reference answer. All claims are supported by passage 3.",
+          "details": [
+            {
+              "claim": "If a patient misses an Ozempic dose, they should take it as soon as possible within 5 days after the missed dose.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "If more than 5 days have passed, they should skip the missed dose and take the next dose on the regularly scheduled day.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "In either case, they should resume their regular once-weekly dosing schedule.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.01938,
+          "all_backed": true
+        },
+        {
+          "id": "q007",
+          "correct": true,
+          "judged": true,
+          "claims": 5,
+          "backed": 5,
+          "backed_by_own": 5,
+          "marks": 5,
+          "marks_ok": 5,
+          "reason": "The answer includes all key facts in the reference: the starting dose, escalation schedule, and adult and pediatric maximum doses. All claims are supported by the supplied passages, including the pediatric age qualification.",
+          "details": [
+            {
+              "claim": "Mounjaro starts at 2.5 mg injected subcutaneously once weekly for 4 weeks, then increases to 5 mg once weekly.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The 2.5 mg dose is for treatment initiation, not glycemic control.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "If additional glycemic control is needed, the dose can be increased in 2.5 mg increments after at least 4 weeks on the current dose.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The maximum once-weekly dose in adults is 15 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The maximum once-weekly dose in pediatric patients aged 10 years and older is 10 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.02905,
+          "all_backed": true
+        },
+        {
+          "id": "q008",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 6,
+          "marks_ok": 5,
+          "reason": "The answer includes both recommended contraceptive options and the correct 4-week periods after initiation and each dose increase. Its additional statements about gastric emptying and non-oral hormonal contraceptives are supported by the passages.",
+          "details": [
+            {
+              "claim": "Patients using oral hormonal contraceptives should switch to a non-oral contraceptive method or add a barrier method for 4 weeks after starting Mounjaro and for 4 weeks after each dose increase.",
+              "cites": [
+                1,
+                3
+              ],
+              "supported_by": [
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "claim": "Mounjaro may reduce oral contraceptive efficacy by delaying gastric emptying.",
+              "cites": [
+                2,
+                3
+              ],
+              "supported_by": [
+                2,
+                3
+              ]
+            },
+            {
+              "claim": "Hormonal contraceptives that are not taken orally should not be affected.",
+              "cites": [
+                2,
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.02434,
+          "all_backed": true
+        },
+        {
+          "id": "q009",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives both approved strengths in the reference answer. The additional injection and presentation details are supported by passage 6.",
+          "details": [
+            {
+              "claim": "Trulicity was approved in strengths of 0.75 mg and 1.5 mg for injection, presented as a single-dose pen or single-dose syringe.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.01311,
+          "all_backed": true
+        },
+        {
+          "id": "q010",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both exposure multiples in the reference answer and correctly associates each with its tumor type. Both claims are supported by passage 1.",
+          "details": [
+            {
+              "claim": "In the two-year rat study for Trulicity (dulaglutide), thyroid C-cell adenomas increased at 7-fold clinical exposure.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "In the two-year rat study, thyroid C-cell carcinomas increased at 58-fold clinical exposure.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.01649,
+          "all_backed": true
+        },
+        {
+          "id": "q011",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q012",
+          "correct": false,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer correctly gives the placebo-adjusted weight reduction and 72-week duration, but omits the reference answer's key fact that 91% of patients at 15 mg achieved at least 5% weight loss. Its stated claim is supported by passage 2.",
+          "details": [
+            {
+              "claim": "In patients without type 2 diabetes, Zepbound (tirzepatide) produced approximately 12%\u201318% greater body-weight reduction from baseline than placebo across the 5 mg, 10 mg, and 15 mg doses over 72 weeks, alongside a reduced-calorie diet and increased physical activity.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01818,
+          "all_backed": true
+        },
+        {
+          "id": "q013",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 5,
+          "marks_ok": 3,
+          "reason": "The answer includes the reference's key finding of about 12% body-weight reduction versus placebo over 68 weeks in patients without diabetes. Its additional distinction between lifestyle programs is supported by the cited passages.",
+          "details": [
+            {
+              "claim": "In patients without type 2 diabetes, Wegovy produced approximately 10%\u201312% greater body-weight reduction than placebo by week 68.",
+              "cites": [
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "The estimated effect was about 12% with a reduced-calorie diet and exercise.",
+              "cites": [
+                1,
+                8
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The estimated effect was 10.3% with an intensive diet and exercise program.",
+              "cites": [
+                1,
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            }
+          ],
+          "cost_usd": 0.02364,
+          "all_backed": true
+        },
+        {
+          "id": "q014",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer matches the reference duration and temperature limit. The additional discard instruction is also supported by passage 2.",
+          "details": [
+            {
+              "claim": "In the EU, Mounjaro single-dose pens or vials can be kept unrefrigerated for up to 21 cumulative days at a temperature below 30\u00b0C.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "After that period, the pens or vials must be discarded.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01337,
+          "all_backed": true
+        },
+        {
+          "id": "q015",
+          "correct": false,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The total of 38 completed trials is supported, but it does not answer how many main trials underpinned the review. The answer omits the reference answer\u2019s five confirmatory LEAD trials plus one supportive trial submitted later.",
+          "details": [
+            {
+              "claim": "The liraglutide clinical development programme comprised 38 completed trials.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.01745,
+          "all_backed": true
+        },
+        {
+          "id": "q016",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference answer's range of approximately 85% to 95%, directly supported by passage 6.",
+          "details": [
+            {
+              "claim": "Type 2 diabetes accounts for approximately 85% to 95% of diabetes cases in developed regions such as the European Union.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.01526,
+          "all_backed": true
+        },
+        {
+          "id": "q017",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 4,
+          "marks_ok": 3,
+          "reason": "The answer correctly states that SELECT was still ongoing at the EU approval assessment, matching the reference answer\u2019s key fact. Its additional description of the trial dose and population is supported by passage 4.",
+          "details": [
+            {
+              "claim": "At the time of the 2022 EU assessment recommending Wegovy\u2019s marketing authorisation, its dedicated cardiovascular outcomes trial, SELECT, was still ongoing.",
+              "cites": [
+                1,
+                4
+              ],
+              "supported_by": [
+                1,
+                4
+              ]
+            },
+            {
+              "claim": "SELECT was investigating semaglutide 2.4 mg once weekly in people with established cardiovascular disease and overweight or obesity without type 2 diabetes.",
+              "cites": [
+                1,
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            }
+          ],
+          "cost_usd": 0.01935,
+          "all_backed": true
+        },
+        {
+          "id": "q018",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer gives all three nausea rates exactly as in the reference answer, and passage 2 supports each rate.",
+          "details": [
+            {
+              "claim": "Nausea occurred in 15.8% of patients receiving Ozempic 0.5 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Nausea occurred in 20.3% of patients receiving Ozempic 1 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Nausea occurred in 6.1% of patients receiving placebo.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01593,
+          "all_backed": true
+        },
+        {
+          "id": "q019",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference rates of 17% at 15 mg and 9% with placebo, both supported by passage 1.",
+          "details": [
+            {
+              "claim": "Diarrhea occurred in 17% of patients receiving Mounjaro 15 mg, compared with 9% receiving placebo.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.01336,
+          "all_backed": true
+        },
+        {
+          "id": "q020",
+          "correct": false,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The strengths and summary review date are correct and supported by passage 1, but the answer omits the reference answer's stated regulatory action: approval.",
+          "details": [
+            {
+              "claim": "The FDA application listed Victoza as an injectable solution at 6 mg/mL, with doses of 0.6 mg, 1.2 mg, and 1.8 mg.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The summary review is dated January 25, 2010.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.02148,
+          "all_backed": true
+        },
+        {
+          "id": "q021",
+          "correct": false,
+          "judged": true,
+          "claims": 4,
+          "backed": 4,
+          "backed_by_own": 4,
+          "marks": 4,
+          "marks_ok": 4,
+          "reason": "The answer correctly identifies rodent C-cell neoplasms as the source of disagreement, and its factual claims are supported. However, it omits key reference facts: C-cell hyperplasia and tumors occurred at clinically relevant doses, raising concern about human medullary thyroid cancer, while efficacy was not in question.",
+          "details": [
+            {
+              "claim": "Thyroid neoplasms, particularly C-cell neoplasms, raised safety concerns from rodent carcinogenicity studies and shaped differing opinions on Victoza\u2019s approvability.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The summary points to Sections 4, 8, and 13 for discussion of the findings and differing opinions.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The final reviewer favored a cautious, gradual introduction into clinical practice, with labeling limitations because of remaining unknowns.",
+              "cites": [
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "The final reviewer recommended approval.",
+              "cites": [
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            }
+          ],
+          "cost_usd": 0.03091,
+          "all_backed": true
+        },
+        {
+          "id": "q022",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q023",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer gives the reference answer of 44%, directly supported by the medical review. The additional low- and higher-titer percentages are supported by the label and sum to 44%.",
+          "details": [
+            {
+              "claim": "44% of Byetta-treated patients developed anti-exenatide antibodies in long-term controlled trials.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                1,
+                3
+              ]
+            },
+            {
+              "claim": "The 2005 label reports 38% with low-titer antibodies at 30 weeks.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The 2005 label reports an additional 6% with higher-titer antibodies at 30 weeks.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.02082,
+          "all_backed": true
+        },
+        {
+          "id": "q024",
+          "correct": false,
+          "judged": true,
+          "claims": 7,
+          "backed": 7,
+          "backed_by_own": 7,
+          "marks": 15,
+          "marks_ok": 10,
+          "reason": "The answer gives the correct placebo-adjusted weight-loss estimates, and its claims are supported by the passages. However, it omits the key treatment durations in the reference answer: 68 weeks for Wegovy and 72 weeks for Zepbound.",
+          "details": [
+            {
+              "claim": "In people without type 2 diabetes, Wegovy produced about 12% greater weight loss versus placebo when added to diet and exercise.",
+              "cites": [
+                4,
+                5
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "In people without type 2 diabetes, Zepbound produced about 12\u201318% greater weight loss versus placebo, depending on the tirzepatide dose, when added to diet and exercise.",
+              "cites": [
+                4,
+                5
+              ],
+              "supported_by": [
+                5
+              ]
+            },
+            {
+              "claim": "With Wegovy, over 80% of treated patients achieved at least 5% weight loss, and approximately two-thirds achieved 10% weight loss from baseline.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "With Zepbound at 15 mg, 91% achieved at least 5% weight loss and approximately 84% achieved 10% weight loss.",
+              "cites": [
+                5,
+                6
+              ],
+              "supported_by": [
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "With Zepbound at 5 mg, 85% achieved at least 5% weight loss and approximately 69% achieved 10% weight loss.",
+              "cites": [
+                5,
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            },
+            {
+              "claim": "These separate-trial results suggest greater weight loss with higher-dose Zepbound.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "The Zepbound review cautions that cross-study comparisons should be interpreted cautiously.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.04195,
+          "all_backed": true
+        },
+        {
+          "id": "q025",
+          "correct": true,
+          "judged": true,
+          "claims": 10,
+          "backed": 10,
+          "backed_by_own": 10,
+          "marks": 16,
+          "marks_ok": 15,
+          "reason": "The answer correctly gives the key placebo-adjusted weight reductions in people with type 2 diabetes: about 6% for Wegovy and 10\u201312% for Zepbound. The additional responder rates and cross-trial comparison caveats are supported by the passages.",
+          "details": [
+            {
+              "claim": "In people with type 2 diabetes, Zepbound produces a larger placebo-adjusted weight reduction than Wegovy, both alongside diet and exercise.",
+              "cites": [
+                4,
+                7
+              ],
+              "supported_by": [
+                4,
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "Wegovy reduces weight by about 6% versus placebo in people with type 2 diabetes.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Zepbound at 10 or 15 mg reduces weight by about 10\u201312% versus placebo in people with type 2 diabetes.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                7
+              ]
+            },
+            {
+              "claim": "Approximately two-thirds of patients with type 2 diabetes receiving Wegovy lost at least 5% of baseline weight.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Approximately 83% of patients with type 2 diabetes receiving Zepbound 15 mg lost at least 5% of baseline weight.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "44% of patients with type 2 diabetes receiving Wegovy lost at least 10% of baseline weight.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "65% of patients with type 2 diabetes receiving Zepbound 15 mg lost at least 10% of baseline weight.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "These are cross-trial comparisons, not a direct head-to-head comparison.",
+              "cites": [
+                3,
+                4,
+                8
+              ],
+              "supported_by": [
+                3,
+                7,
+                8
+              ]
+            },
+            {
+              "claim": "The reviews caution that differences in patient populations and permitted concomitant medications can affect results.",
+              "cites": [
+                3,
+                4,
+                8
+              ],
+              "supported_by": [
+                3,
+                4,
+                8
+              ]
+            },
+            {
+              "claim": "Both drugs\u2019 weight-loss effects in people with type 2 diabetes were considered clinically meaningful and statistically robust.",
+              "cites": [
+                4,
+                5
+              ],
+              "supported_by": [
+                3,
+                4,
+                5,
+                8
+              ]
+            }
+          ],
+          "cost_usd": 0.0591,
+          "all_backed": true
+        },
+        {
+          "id": "q026",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 6,
+          "marks_ok": 6,
+          "reason": "The answer accurately gives both the unchanged 60-minute premeal timing and the added option of the two main meals approximately 6 hours or more apart. The additional statement about avoiding administration after meals is supported by both passages.",
+          "details": [
+            {
+              "claim": "Both labels instruct patients to inject BYETTA twice daily within 60 minutes before morning and evening meals.",
+              "cites": [
+                2,
+                7
+              ],
+              "supported_by": [
+                2,
+                7
+              ]
+            },
+            {
+              "claim": "The current (2025) label adds the option of dosing before the two main meals of the day, approximately 6 hours or more apart.",
+              "cites": [
+                2,
+                7
+              ],
+              "supported_by": [
+                2,
+                7
+              ]
+            },
+            {
+              "claim": "Both labels say not to administer BYETTA after a meal.",
+              "cites": [
+                2,
+                7
+              ],
+              "supported_by": [
+                2,
+                7
+              ]
+            }
+          ],
+          "cost_usd": 0.02505,
+          "all_backed": true
+        },
+        {
+          "id": "q027",
+          "correct": false,
+          "judged": true,
+          "claims": 8,
+          "backed": 7,
+          "backed_by_own": 7,
+          "marks": 15,
+          "marks_ok": 11,
+          "reason": "The answer omits the Trulicity Summary Review (2014), a key review named in the reference answer. Its additional Mounjaro review discussion is supported, but the opening claim that the passages identify three reviews is unsupported and contradicts its later count of two.",
+          "details": [
+            {
+              "claim": "The supplied passages identify three FDA reviews.",
+              "cites": [],
+              "supported_by": []
+            },
+            {
+              "claim": "The Victoza Summary Review (2010) discusses liraglutide-associated C-cell hyperplasia and tumors in rodents.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                1,
+                3,
+                9
+              ]
+            },
+            {
+              "claim": "The Victoza review reports significantly higher C-cell tumor incidence in treated rats.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "The Victoza review discusses uncertainty about the relevance of the rodent findings to humans.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "The Mounjaro Summary Review (2022) discusses tirzepatide-associated thyroid C-cell tumors in a two-year rat study at clinical exposures.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "A six-month transgenic mouse study of tirzepatide did not show increased C-cell hyperplasia or neoplasia.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "Only two distinct reviews are identified in the supplied passages.",
+              "cites": [
+                2,
+                6
+              ],
+              "supported_by": [
+                1,
+                2,
+                3,
+                6,
+                8,
+                9
+              ]
+            },
+            {
+              "claim": "The Ozempic and Mounjaro 2026 documents are labels rather than reviews.",
+              "cites": [
+                2,
+                6
+              ],
+              "supported_by": [
+                2,
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.05593,
+          "all_backed": false
+        },
+        {
+          "id": "q028",
+          "correct": true,
+          "judged": true,
+          "claims": 4,
+          "backed": 4,
+          "backed_by_own": 4,
+          "marks": 6,
+          "marks_ok": 5,
+          "reason": "The answer gives the reference answer\u2019s 4-day (96-hour) window and the instruction to skip a later missed dose and resume on the regular day. The additional advice against doubling up and requiring at least 3 days between doses is also supported by the passages.",
+          "details": [
+            {
+              "claim": "If you miss a Mounjaro dose, take it as soon as possible within 4 days (96 hours) of the missed dose.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "claim": "If more than 4 days have passed, skip it and take your next dose on your regularly scheduled day.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "claim": "Do not double up.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "Allow at least 3 days (72 hours) between doses.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            }
+          ],
+          "cost_usd": 0.02493,
+          "all_backed": true
+        },
+        {
+          "id": "q029",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both maximum doses in the reference answer and correctly specifies the pediatric age group. Both claims are supported by passage 2.",
+          "details": [
+            {
+              "claim": "The maximum dose of Mounjaro is 15 mg injected subcutaneously once weekly for adults.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "The maximum dose of Mounjaro is 10 mg once weekly for pediatric patients aged 10 years and older.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01475,
+          "all_backed": true
+        },
+        {
+          "id": "q030",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer correctly gives the trial duration as 68 weeks. The additional trial count and design details are supported by passage 6.",
+          "details": [
+            {
+              "claim": "The FDA reviewed four 68-week trials.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            },
+            {
+              "claim": "Three were randomized, double-blind, placebo-controlled trials and one was a randomized, double-blind, placebo-withdrawal trial.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.0142,
+          "all_backed": true
+        },
+        {
+          "id": "q031",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q032",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q033",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer correctly makes clear that the documents do not provide SELECT results and does not present other findings as those results. Its additional statements about the trial's status and population are supported by the passages.",
+          "details": [
+            {
+              "claim": "SELECT was still ongoing, and a cardiovascular benefit of semaglutide 2.4 mg had not yet been shown.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "The trial was investigating semaglutide 2.4 mg once weekly in people with established cardiovascular disease and overweight or obesity, without type 2 diabetes.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01967,
+          "all_backed": true
+        },
+        {
+          "id": "q034",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q035",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q036",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        }
+      ]
+    },
+    "always": {
+      "summary": {
+        "questions": 36,
+        "judged": 28,
+        "correct": 0.722,
+        "answers_fully_backed": 0.964,
+        "claims": 94,
+        "citation_recall": 0.989,
+        "citation_precision": 0.842,
+        "unsupported_claims": 0.011,
+        "judge_cost_usd_mean": 0.0239
+      },
+      "self_agreement": null,
+      "items": [
+        {
+          "id": "q001",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference answer\u2019s 24-month shelf life, directly supported by the approval letter\u2019s statement of a 24-month expiry.",
+          "details": [
+            {
+              "claim": "The FDA accepted a 24-month shelf life for Byetta\u2019s multiple-dose, prefilled 1.2 mL and 2.4 mL pens at approval in 2005, based on the submitted stability data.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            }
+          ],
+          "cost_usd": 0.01447,
+          "all_backed": true
+        },
+        {
+          "id": "q002",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both age ranges exactly as in the reference answer, and passage 2 supports both claims.",
+          "details": [
+            {
+              "claim": "The FDA waived Byetta\u2019s pediatric study requirement for ages 0 through 11 years.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "The FDA deferred Byetta\u2019s pediatric studies for ages 12 through 16 years.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01496,
+          "all_backed": true
+        },
+        {
+          "id": "q003",
+          "correct": false,
+          "judged": true,
+          "claims": 6,
+          "backed": 6,
+          "backed_by_own": 6,
+          "marks": 9,
+          "marks_ok": 6,
+          "reason": "The answer omits the required starting regimen of 5 mcg twice daily within 60 minutes before the morning and evening meals, not after a meal, and does not explicitly state escalation to 10 mcg twice daily after one month. Its affirmative claims are supported by the supplied passages, but it does not give the key facts of the reference answer.",
+          "details": [
+            {
+              "claim": "BYETTA dosing is 5 mcg or 10 mcg twice daily.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "The dose may be increased after 30 days.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "Before starting, patients should read the Patient Information and Pen User Manual.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "Before starting, patients should receive injection training from their healthcare provider.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "Patients should perform the New Pen Set-Up only once when beginning a new pen, not before each injection.",
+              "cites": [
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "BYETTA is injected under the skin of the thigh, abdomen, or upper arm.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.03444,
+          "all_backed": true
+        },
+        {
+          "id": "q004",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 6,
+          "marks_ok": 5,
+          "reason": "The answer gives the correct 30-day limit and makes clear that remaining medicine does not extend use. Its additional expiration-date restriction is also supported by the passages.",
+          "details": [
+            {
+              "claim": "A pen can be used for up to 30 days after first use.",
+              "cites": [
+                2,
+                9
+              ],
+              "supported_by": [
+                2,
+                9
+              ]
+            },
+            {
+              "claim": "Use must end at the expiration date printed on the pen label if that comes first.",
+              "cites": [
+                2,
+                9
+              ],
+              "supported_by": [
+                2,
+                9
+              ]
+            },
+            {
+              "claim": "The use limit applies even if medicine remains in the pen.",
+              "cites": [
+                2,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            }
+          ],
+          "cost_usd": 0.02504,
+          "all_backed": true
+        },
+        {
+          "id": "q005",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer matches the reference answer and is directly supported by passage 6.",
+          "details": [
+            {
+              "claim": "The maximum recommended dose of Ozempic is 2 mg once weekly.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.0113,
+          "all_backed": true
+        },
+        {
+          "id": "q006",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer includes all key instructions in the reference answer, with no contradictions. All claims are supported by passage 1.",
+          "details": [
+            {
+              "claim": "If a patient misses an Ozempic dose, they should take it as soon as possible within 5 days after the missed dose.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "If more than 5 days have passed, they should skip the missed dose and take the next dose on the regularly scheduled day.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "In either case, they should resume their regular once-weekly dosing schedule.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.01675,
+          "all_backed": true
+        },
+        {
+          "id": "q007",
+          "correct": true,
+          "judged": true,
+          "claims": 5,
+          "backed": 5,
+          "backed_by_own": 5,
+          "marks": 6,
+          "marks_ok": 6,
+          "reason": "The answer includes all key facts from the reference: the starting dose, escalation schedule, and adult and pediatric maximum doses. All claims, including the pediatric age qualification and initiation-dose clarification, are supported by the passages.",
+          "details": [
+            {
+              "claim": "Mounjaro starts at 2.5 mg subcutaneously once weekly for 4 weeks, then increases to 5 mg once weekly.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The 2.5 mg dose is for treatment initiation, not glycemic control.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "If additional glycemic control is needed, the dose may be increased in 2.5 mg increments after at least 4 weeks on the current dose.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The maximum once-weekly dose in adults is 15 mg.",
+              "cites": [
+                1,
+                2
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "The maximum once-weekly dose in pediatric patients aged 10 years and older is 10 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.02935,
+          "all_backed": true
+        },
+        {
+          "id": "q008",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 6,
+          "marks_ok": 4,
+          "reason": "The answer includes both recommended contraceptive options and the correct 4-week periods after initiation and each dose increase. The additional claims about gastric emptying and non-oral hormonal contraceptives are supported by the passages.",
+          "details": [
+            {
+              "claim": "Patients using oral hormonal contraceptives should switch to a non-oral contraceptive method or add a barrier method for 4 weeks after starting Mounjaro and for 4 weeks after each dose increase.",
+              "cites": [
+                1,
+                3
+              ],
+              "supported_by": [
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "claim": "Mounjaro may reduce oral contraceptive effectiveness by delaying gastric emptying.",
+              "cites": [
+                2,
+                3
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Hormonal contraceptives not taken orally should not be affected.",
+              "cites": [
+                2,
+                3
+              ],
+              "supported_by": [
+                3
+              ]
+            }
+          ],
+          "cost_usd": 0.02407,
+          "all_backed": true
+        },
+        {
+          "id": "q009",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both approved strengths in the reference answer. The cited passage supports the strengths and the additional presentation and administration details.",
+          "details": [
+            {
+              "claim": "Trulicity was approved in strengths of 0.75 mg and 1.5 mg.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            },
+            {
+              "claim": "Trulicity was presented as single-dose pens or single-dose syringes for once-weekly subcutaneous injection.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.01437,
+          "all_backed": true
+        },
+        {
+          "id": "q010",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer matches both exposure multiples in the reference answer, and passage 1 directly supports both claims.",
+          "details": [
+            {
+              "claim": "In Trulicity\u2019s two-year rat study, thyroid C-cell adenomas increased at 7-fold the clinical exposure.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "In Trulicity\u2019s two-year rat study, thyroid C-cell carcinomas increased at 58-fold the clinical exposure.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.01599,
+          "all_backed": true
+        },
+        {
+          "id": "q011",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q012",
+          "correct": false,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The reported placebo-adjusted weight reduction, duration, doses, and treatment conditions are supported by passage 2. However, the answer omits the reference answer's key fact that 91% of patients receiving 15 mg achieved at least 5% weight loss.",
+          "details": [
+            {
+              "claim": "In patients without diabetes, Zepbound (tirzepatide) produced approximately 12%\u201318% greater body-weight reduction from baseline than placebo over 72 weeks, across the 5 mg, 10 mg, and 15 mg once-weekly doses, alongside a reduced-calorie diet and increased physical activity.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.02249,
+          "all_backed": true
+        },
+        {
+          "id": "q013",
+          "correct": true,
+          "judged": true,
+          "claims": 5,
+          "backed": 5,
+          "backed_by_own": 5,
+          "marks": 8,
+          "marks_ok": 5,
+          "reason": "The answer includes the reference answer's key finding of about 12% weight loss versus placebo over 68 weeks. Its additional range, trial-specific results, and weight-loss thresholds are supported by the supplied passages.",
+          "details": [
+            {
+              "claim": "In patients without type 2 diabetes, Wegovy (semaglutide) produced approximately 10%\u201312% greater weight loss compared with placebo at week 68.",
+              "cites": [
+                8,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "Weight loss compared with placebo was about 12% with a reduced-calorie diet.",
+              "cites": [
+                8,
+                9
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "Weight loss compared with placebo was 10.3% with an intensive diet and exercise program.",
+              "cites": [
+                8,
+                9
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "Over 80% of semaglutide-treated patients lost at least 5% of their baseline weight.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8,
+                9
+              ]
+            },
+            {
+              "claim": "Approximately two-thirds of semaglutide-treated patients lost at least 10% of their baseline weight.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8,
+                9
+              ]
+            }
+          ],
+          "cost_usd": 0.02578,
+          "all_backed": true
+        },
+        {
+          "id": "q014",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer matches the reference duration and temperature limit. The additional discard instruction is also supported by passage 2.",
+          "details": [
+            {
+              "claim": "In the EU, Mounjaro single-dose pens or vials can be kept unrefrigerated for up to 21 cumulative days at a temperature below 30\u00b0C.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "After that period, the pens or vials must be discarded.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01337,
+          "all_backed": true
+        },
+        {
+          "id": "q015",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q016",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference answer's range of approximately 85% to 95%, directly supported by passage 6.",
+          "details": [
+            {
+              "claim": "Type 2 diabetes accounts for approximately 85% to 95% of diabetes cases in developed regions such as the European Union.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.01526,
+          "all_backed": true
+        },
+        {
+          "id": "q017",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer correctly states that SELECT had not finished and was still ongoing, matching the reference answer. Both its trial-status statement and its additional trial details are supported by passage 4.",
+          "details": [
+            {
+              "claim": "Wegovy\u2019s dedicated cardiovascular outcomes trial, SELECT, was still ongoing at the time of the EU assessment.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "SELECT was investigating semaglutide 2.4 mg once weekly in people with established cardiovascular disease and overweight or obesity without type 2 diabetes.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            }
+          ],
+          "cost_usd": 0.02139,
+          "all_backed": true
+        },
+        {
+          "id": "q018",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer gives all three nausea rates exactly as in the reference answer, and passage 2 supports each rate.",
+          "details": [
+            {
+              "claim": "Nausea occurred in 15.8% of patients receiving Ozempic 0.5 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Nausea occurred in 20.3% of patients receiving Ozempic 1 mg.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Nausea occurred in 6.1% of patients receiving placebo.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01593,
+          "all_backed": true
+        },
+        {
+          "id": "q019",
+          "correct": true,
+          "judged": true,
+          "claims": 1,
+          "backed": 1,
+          "backed_by_own": 1,
+          "marks": 1,
+          "marks_ok": 1,
+          "reason": "The answer gives the reference rates of 17% at 15 mg and 9% with placebo, both supported by passage 1.",
+          "details": [
+            {
+              "claim": "Diarrhea occurred in 17% of patients receiving Mounjaro 15 mg, compared with 9% receiving placebo.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.01336,
+          "all_backed": true
+        },
+        {
+          "id": "q020",
+          "correct": false,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The strengths, concentration, and summary review date are correct and supported by passage 1. However, the answer omits the reference answer\u2019s stated regulatory action: approval.",
+          "details": [
+            {
+              "claim": "The FDA application listed Victoza as a 6 mg/mL injectable solution with strengths of 0.6 mg, 1.2 mg, and 1.8 mg.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The summary review is dated January 25, 2010.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.02029,
+          "all_backed": true
+        },
+        {
+          "id": "q021",
+          "correct": false,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer correctly identifies rodent thyroid C-cell neoplasms as the source of disagreement, but omits the key facts that hyperplasia and tumors occurred at clinically relevant doses, raised concern about human medullary thyroid cancer, and that efficacy was not in question. Its affirmative claims are supported by the supplied passages.",
+          "details": [
+            {
+              "claim": "The FDA summary review links differing opinions on Victoza\u2019s approvability to thyroid neoplasm findings, particularly C-cell neoplasms, from rat and mouse carcinogenicity studies.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "These findings were a focus of the advisory committee meeting, alongside cardiovascular safety assessment.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "The final recommendation favored approval with labeling limitations to encourage cautious introduction while uncertainties remained and further animal studies were completed.",
+              "cites": [
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            }
+          ],
+          "cost_usd": 0.0305,
+          "all_backed": true
+        },
+        {
+          "id": "q022",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q023",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer gives the reference answer's 44% figure. The additional low- and higher-titer percentages are supported by the label passage.",
+          "details": [
+            {
+              "claim": "44% of Byetta-treated patients developed anti-exenatide antibodies.",
+              "cites": [
+                3
+              ],
+              "supported_by": [
+                1,
+                3
+              ]
+            },
+            {
+              "claim": "At 30 weeks, 38% had low-titer antibodies.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            },
+            {
+              "claim": "At 30 weeks, an additional 6% had higher-titer antibodies.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1
+              ]
+            }
+          ],
+          "cost_usd": 0.02188,
+          "all_backed": true
+        },
+        {
+          "id": "q024",
+          "correct": false,
+          "judged": true,
+          "claims": 10,
+          "backed": 10,
+          "backed_by_own": 10,
+          "marks": 18,
+          "marks_ok": 14,
+          "reason": "The answer gives the reference's placebo-adjusted weight-loss estimates and its claims are supported by the passages, but it omits the key assessment periods: 68 weeks for Wegovy and 72 weeks for Zepbound.",
+          "details": [
+            {
+              "claim": "In people without type 2 diabetes, the FDA reviews report a larger placebo-adjusted weight-loss effect for Zepbound.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "Cross-study comparisons should be interpreted carefully.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            },
+            {
+              "claim": "Wegovy produced approximately 12% greater reduction in body weight than placebo with a reduced-calorie diet and exercise.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Over 80% of Wegovy patients achieved at least 5% weight loss.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Approximately two-thirds of Wegovy patients achieved 10% weight loss.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Zepbound produced approximately 12\u201318% greater reduction in body weight than placebo across the 5, 10, and 15 mg doses.",
+              "cites": [
+                5
+              ],
+              "supported_by": [
+                5
+              ]
+            },
+            {
+              "claim": "At 15 mg Zepbound, 91% of patients achieved at least 5% weight loss.",
+              "cites": [
+                5
+              ],
+              "supported_by": [
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "At 15 mg Zepbound, approximately 84% of patients achieved 10% weight loss.",
+              "cites": [
+                5
+              ],
+              "supported_by": [
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "These figures come from separate trials rather than a direct head-to-head comparison.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                4,
+                5,
+                6
+              ]
+            },
+            {
+              "claim": "The Zepbound review explicitly cautions against overinterpreting cross-study comparisons.",
+              "cites": [
+                4,
+                5,
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.05027,
+          "all_backed": true
+        },
+        {
+          "id": "q025",
+          "correct": true,
+          "judged": true,
+          "claims": 10,
+          "backed": 10,
+          "backed_by_own": 10,
+          "marks": 16,
+          "marks_ok": 15,
+          "reason": "The answer gives the reference answer\u2019s key comparison: about 6% placebo-adjusted weight reduction with Wegovy versus about 10\u201312% with Zepbound in people with type 2 diabetes. The additional responder rates and cross-trial caveats are supported by the passages.",
+          "details": [
+            {
+              "claim": "In people with type 2 diabetes, Zepbound had a larger placebo-adjusted weight reduction than Wegovy, both used alongside diet and exercise.",
+              "cites": [
+                4,
+                7
+              ],
+              "supported_by": [
+                4,
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "Wegovy produced about 6% weight reduction versus placebo.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Zepbound produced about 10\u201312% weight reduction versus placebo at 10 or 15 mg.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                7
+              ]
+            },
+            {
+              "claim": "Approximately two-thirds of Wegovy patients lost at least 5% of baseline weight.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "Approximately 83% of Zepbound patients at 15 mg lost at least 5% of baseline weight.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "44% of Wegovy patients lost at least 10% of baseline weight.",
+              "cites": [
+                4
+              ],
+              "supported_by": [
+                4
+              ]
+            },
+            {
+              "claim": "65% of Zepbound patients at 15 mg lost at least 10% of baseline weight.",
+              "cites": [
+                7
+              ],
+              "supported_by": [
+                5,
+                7
+              ]
+            },
+            {
+              "claim": "Both reviews describe the effects as clinically meaningful and statistically robust.",
+              "cites": [
+                4,
+                5
+              ],
+              "supported_by": [
+                4,
+                5
+              ]
+            },
+            {
+              "claim": "These are separate-trial results, not a head-to-head comparison.",
+              "cites": [
+                3,
+                4,
+                8
+              ],
+              "supported_by": [
+                3,
+                7,
+                8
+              ]
+            },
+            {
+              "claim": "The reviews caution that differences in patient populations and concomitant medications can affect cross-trial comparisons.",
+              "cites": [
+                3,
+                4,
+                8
+              ],
+              "supported_by": [
+                3,
+                4,
+                8
+              ]
+            }
+          ],
+          "cost_usd": 0.05421,
+          "all_backed": true
+        },
+        {
+          "id": "q026",
+          "correct": true,
+          "judged": true,
+          "claims": 4,
+          "backed": 4,
+          "backed_by_own": 4,
+          "marks": 7,
+          "marks_ok": 6,
+          "reason": "The answer gives both key facts: the unchanged 60-minute pre-meal timing and the current label's added option of the two main meals approximately 6 hours or more apart. Its additional statements about post-meal dosing and missed doses are supported by the passages.",
+          "details": [
+            {
+              "claim": "Both the 2005 and current (2025) labels say to inject BYETTA twice daily within 60 minutes before morning and evening meals, and not after a meal.",
+              "cites": [
+                2,
+                7
+              ],
+              "supported_by": [
+                2,
+                4,
+                7
+              ]
+            },
+            {
+              "claim": "The current label adds flexibility by allowing injections before the two main meals of the day, provided those meals are approximately 6 hours or more apart.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "Both labels say to resume with the next scheduled dose if one is missed.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                2,
+                4
+              ]
+            },
+            {
+              "claim": "The current label explicitly adds that patients should skip the missed dose and not take an extra dose or increase the next dose to make up for it.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.02971,
+          "all_backed": true
+        },
+        {
+          "id": "q027",
+          "correct": false,
+          "judged": true,
+          "claims": 8,
+          "backed": 7,
+          "backed_by_own": 7,
+          "marks": 15,
+          "marks_ok": 10,
+          "reason": "The answer omits the Trulicity summary review (2014), a key review named in the reference answer. Its opening claim that three reviews are identified is unsupported and contradicts its later count of two; the added Mounjaro review discussion is supported.",
+          "details": [
+            {
+              "claim": "The supplied passages identify three FDA reviews discussing thyroid C-cell tumors in rodent studies.",
+              "cites": [],
+              "supported_by": []
+            },
+            {
+              "claim": "The Victoza summary review (2010) discusses liraglutide-associated C-cell hyperplasia and tumors in rats and mice.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                1,
+                3
+              ]
+            },
+            {
+              "claim": "The Victoza summary review reports significantly increased C-cell tumor incidence in treated rats.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                9
+              ]
+            },
+            {
+              "claim": "The Victoza summary review discusses uncertainty about the relevance of the rodent findings to humans.",
+              "cites": [
+                1,
+                3,
+                9
+              ],
+              "supported_by": [
+                3
+              ]
+            },
+            {
+              "claim": "The Mounjaro summary review (2022) discusses tirzepatide-associated C-cell tumors in a 2-year rat study at clinical exposures.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "A 6-month transgenic mouse study of tirzepatide did not show increased thyroid C-cell hyperplasia or neoplasia.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "Only two distinct review documents are identified in the supplied passages.",
+              "cites": [
+                2,
+                6
+              ],
+              "supported_by": [
+                1,
+                2,
+                3,
+                6,
+                8,
+                9
+              ]
+            },
+            {
+              "claim": "The Ozempic and Mounjaro 2026 documents are labels that describe rodent C-cell tumor findings and undetermined human relevance.",
+              "cites": [
+                2,
+                6
+              ],
+              "supported_by": [
+                2,
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.05247,
+          "all_backed": false
+        },
+        {
+          "id": "q028",
+          "correct": true,
+          "judged": true,
+          "claims": 4,
+          "backed": 4,
+          "backed_by_own": 4,
+          "marks": 6,
+          "marks_ok": 5,
+          "reason": "The answer includes both key instructions from the reference: take the missed dose within 4 days (96 hours), or otherwise skip it and resume on the regular day. The additional instructions against doubling up and requiring at least 3 days between doses are also supported.",
+          "details": [
+            {
+              "claim": "If you miss a Mounjaro dose, take it as soon as possible within 4 days (96 hours) after the missed dose.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "claim": "If more than 4 days have passed, skip it and take your next dose on your regularly scheduled day.",
+              "cites": [
+                1
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "claim": "Do not double up.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                1,
+                2
+              ]
+            },
+            {
+              "claim": "Keep at least 3 days (72 hours) between doses.",
+              "cites": [
+                2,
+                4
+              ],
+              "supported_by": [
+                1,
+                2,
+                4
+              ]
+            }
+          ],
+          "cost_usd": 0.02822,
+          "all_backed": true
+        },
+        {
+          "id": "q029",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives both maximum doses in the reference answer and correctly specifies the pediatric age range. Both claims are supported by passage 2.",
+          "details": [
+            {
+              "claim": "The maximum dose of Mounjaro is 15 mg injected under the skin once weekly for adults.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            },
+            {
+              "claim": "The maximum dose is 10 mg once weekly for pediatric patients aged 10 years and older.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.01455,
+          "all_backed": true
+        },
+        {
+          "id": "q030",
+          "correct": true,
+          "judged": true,
+          "claims": 2,
+          "backed": 2,
+          "backed_by_own": 2,
+          "marks": 2,
+          "marks_ok": 2,
+          "reason": "The answer gives the reference duration of 68 weeks and accurately describes the trial designs. Both claims are supported by passage 6.",
+          "details": [
+            {
+              "claim": "The Wegovy weight-loss trials discussed in the FDA review lasted 68 weeks each.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            },
+            {
+              "claim": "There were three randomized, double-blind, placebo-controlled trials and one randomized, double-blind, placebo-withdrawal trial.",
+              "cites": [
+                6
+              ],
+              "supported_by": [
+                6
+              ]
+            }
+          ],
+          "cost_usd": 0.01464,
+          "all_backed": true
+        },
+        {
+          "id": "q031",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q032",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q033",
+          "correct": true,
+          "judged": true,
+          "claims": 3,
+          "backed": 3,
+          "backed_by_own": 3,
+          "marks": 3,
+          "marks_ok": 3,
+          "reason": "The answer clearly states that the documents do not provide SELECT results, matching the reference answer. Its additional statements about the trial's ongoing status and study population are supported by the passages and are not presented as trial results.",
+          "details": [
+            {
+              "claim": "SELECT was still ongoing.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                2,
+                8
+              ]
+            },
+            {
+              "claim": "Cardiovascular benefit with semaglutide 2.4 mg had not yet been demonstrated.",
+              "cites": [
+                8
+              ],
+              "supported_by": [
+                8
+              ]
+            },
+            {
+              "claim": "The trial was investigating once-weekly semaglutide 2.4 mg in people with established cardiovascular disease and overweight or obesity, without type 2 diabetes.",
+              "cites": [
+                2
+              ],
+              "supported_by": [
+                2
+              ]
+            }
+          ],
+          "cost_usd": 0.02304,
+          "all_backed": true
+        },
+        {
+          "id": "q034",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q035",
+          "correct": false,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused an answerable question",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        },
+        {
+          "id": "q036",
+          "correct": true,
+          "judged": false,
+          "claims": 0,
+          "backed": 0,
+          "backed_by_own": 0,
+          "marks": 0,
+          "marks_ok": 0,
+          "reason": "refused, as it should",
+          "details": [],
+          "cost_usd": null,
+          "all_backed": null
+        }
+      ]
+    }
+  }
+}
