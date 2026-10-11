@@ -62,7 +62,7 @@ RESULTS = EVALS / "results"
 CACHE = EVALS / ".cache" / "judge"
 
 # Part of every cache key: change it whenever the prompt or the verdict shape changes.
-PROMPT_VERSION = "judge-v1"
+PROMPT_VERSION = "judge-v2"
 # Reasoning counts against this cap.
 JUDGE_MAX_TOKENS = 8000
 
@@ -91,9 +91,13 @@ same topic does not back the claim.
 or wrong and any claim that no passage backs.
 
 3. correct: true when the answer gives the key facts of the reference answer and \
-contradicts none of them. Other wording, another order, and extra detail that is not \
-wrong do not matter. A missing key fact, or a wrong number, drug, population or \
-condition, makes it false. Grade against the reference answer, not your own knowledge.
+contradicts none of them. The key facts are the ones that answer the question as \
+asked; a reference answer may also give context the question does not ask for (a \
+trial's duration, a further statistic, the regulatory action), and leaving that out \
+does not make the answer wrong. Other wording, another order, and extra detail that \
+is not wrong do not matter. A missing key fact, or anything the answer states that is \
+wrong (a number, drug, population or condition, in the answer or in its extra \
+detail), makes it false. Grade against the reference answer, not your own knowledge.
 When the reference says the documents do not answer the question, correct is true \
 only if the answer makes clear that the documents do not give the answer, and does \
 not present anything as the answer.
