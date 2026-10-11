@@ -1,5 +1,8 @@
 """The section-aware chunker: boundaries, sizes, tables, and exact provenance."""
 
+import pytest
+from pydantic import ValidationError
+
 from app.ingest.chunking import ChunkDraft, ChunkingConfig, approx_tokens, chunk_document
 from app.ingest.models import (
     BBox,
@@ -630,3 +633,28 @@ def test_a_table_after_text_is_not_a_continuation() -> None:
     chunks = chunk_document(_two_page_table("Diarrhea", between=True), CONFIG)
 
     assert chunks[-1].text.splitlines()[0] == "| Diarrhea | 17 |"
+
+
+@pytest.mark.parametrize(
+    ("ranges", "says"),
+    [
+        ([(0, 4), (6, 11)], "end to end"),  # a gap: characters 4-5 map to no page
+        ([(0, 4), (0, 4)], "spans end at 4"),  # a repeated range, but the text runs on
+    ],
+)
+def test_a_table_chunk_whose_spans_miss_text_is_refused(
+    ranges: list[tuple[int, int]], says: str
+) -> None:
+    with pytest.raises(ValidationError, match=says):
+        ChunkDraft(
+            kind="table",
+            text="| a | b |\n| 1 |",
+            section_path=["Table 1"],
+            token_count=4,
+            block_indices=[0],
+            table_block=0,
+            spans=[
+                Region(page=1 + i, bbox=_box(i), char_start=start, char_end=end)
+                for i, (start, end) in enumerate(ranges)
+            ],
+        )

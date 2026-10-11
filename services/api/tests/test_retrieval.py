@@ -8,7 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.embeddings import FakeEmbedder
 from app.models import EMBEDDING_DIMENSIONS, Chunk
-from app.retrieval import bm25_search, fuse, retrieve, rrf_fuse, search_text, vector_search
+from app.passages import load_hits
+from app.retrieval import (
+    Fused,
+    bm25_search,
+    fuse,
+    retrieve,
+    rrf_fuse,
+    search_text,
+    vector_search,
+)
 from tests.factories import insert_document
 
 EMBEDDER = FakeEmbedder(dimensions=EMBEDDING_DIMENSIONS)
@@ -266,3 +275,19 @@ def test_rrf_breaks_ties_deterministically() -> None:
 
 def test_rrf_of_nothing_is_empty() -> None:
     assert rrf_fuse({"vector": [], "bm25": []}) == []
+
+
+@pytest.mark.db
+@pytest.mark.anyio
+async def test_a_chunk_replaced_after_it_was_found_is_skipped_not_an_error(
+    sessions: async_sessionmaker[AsyncSession],
+) -> None:
+    # A re-chunk can replace a document's chunks between searching and loading them.
+    document = await insert_document(sessions)
+    (kept,) = await add_chunks(sessions, document, ["Store the axolotlpen cold."])
+    replaced = kept + 1000
+
+    async with sessions() as session:
+        hits = await load_hits(session, [Fused(replaced, 0.03), Fused(kept, 0.02)])
+
+    assert [hit.chunk.id for hit in hits] == [kept]

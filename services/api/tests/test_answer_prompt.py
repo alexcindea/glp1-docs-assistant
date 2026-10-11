@@ -2,6 +2,8 @@
 
 import uuid
 
+import pytest
+
 from app.answer_prompt import (
     NOT_FOUND,
     OUT_OF_SCOPE,
@@ -104,3 +106,13 @@ def test_a_question_cannot_fake_a_passage() -> None:
 
     assert content.count("<passage") == 1
     assert content.count("</passage>") == 1
+
+
+def test_a_passage_without_a_page_is_never_put_before_the_model() -> None:
+    # Ingestion gives every chunk a span; a chunk without one could not be cited to a page.
+    unplaced = hit("The maximum dose is 2 mg.", page_numbers=())
+
+    with pytest.raises(ValueError, match="no provenance"):
+        pages(unplaced)
+    with pytest.raises(ValueError, match="no provenance"):
+        build_answer_request("What is the maximum dose?", [unplaced])

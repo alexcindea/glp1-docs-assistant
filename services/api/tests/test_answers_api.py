@@ -12,6 +12,8 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import TypeAdapter
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.answering import AnswerEvent, DeltaEvent, DoneEvent, ErrorEvent, SourcesEvent
 from app.config import Settings
@@ -113,6 +115,25 @@ def test_a_refusal_is_streamed_and_saved_with_its_reason(
     assert done.refusal.closest
     assert done.answer_id is not None
     assert saved(migrated_database_url, done.answer_id).refusal_reason == "not_found"
+
+
+def test_an_answer_the_database_cannot_save_still_reaches_the_user(
+    client: TestClient, migrated_database_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _ready_document(client, migrated_database_url)
+    use_llm(client, cite("antibodies"))
+
+    async def unavailable(self: AsyncSession) -> None:
+        raise OperationalError("COMMIT", {}, ConnectionError("database went away"))
+
+    monkeypatch.setattr(AsyncSession, "commit", unavailable)
+    events = ask(client, {"question": "What share developed antibodies?"})
+
+    done = events[-1]
+    assert isinstance(done, DoneEvent)
+    assert done.citations  # the answer, as checked
+    assert done.refusal is None
+    assert done.answer_id is None  # but nothing to leave feedback on
 
 
 def test_a_follow_up_is_searched_as_its_standalone_question(
