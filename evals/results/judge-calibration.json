@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-10-11T10:05:08+00:00",
+  "measured_at": "2026-10-11T11:22:45+00:00",
   "judge": "gpt-6-astra (medium)",
   "prompt_version": "judge-v2",
   "agreement": {
@@ -68,17 +68,23 @@
     "tune": {
       "broken": 6,
       "rejected_by_label": 4,
-      "caught": 4
+      "caught": 4,
+      "accepted_by_label": 2,
+      "false_alarms": 0
     },
     "holdout": {
       "broken": 6,
       "rejected_by_label": 5,
-      "caught": 5
+      "caught": 5,
+      "accepted_by_label": 1,
+      "false_alarms": 0
     },
     "all": {
       "broken": 12,
       "rejected_by_label": 9,
-      "caught": 9
+      "caught": 9,
+      "accepted_by_label": 3,
+      "false_alarms": 0
     }
   },
   "disagreements": [

@@ -73,7 +73,19 @@ def test_a_broken_copy_is_caught_only_on_a_criterion_the_label_rejects() -> None
         pair((False, False), (False, False)),  # real: not counted
     ]
 
-    assert caught(pairs) == {"broken": 3, "rejected_by_label": 2, "caught": 1}
+    assert caught(pairs) == {
+        "broken": 3,
+        "rejected_by_label": 2,
+        "caught": 1,
+        "accepted_by_label": 1,
+        "false_alarms": 0,
+    }
+
+
+def test_a_harmless_break_the_judge_rejects_is_a_false_alarm() -> None:
+    pairs = [pair((True, True), (False, True), kind="dropped_fact")]
+
+    assert caught(pairs)["false_alarms"] == 1
 
 
 def test_holdout_disagreements_stay_hidden_until_revealed() -> None:

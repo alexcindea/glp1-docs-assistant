@@ -14,10 +14,10 @@ from judge import (
     Judge,
     JudgeVerdict,
     Summary,
-    _row,
     _self_agreement,
     build_request,
     grade,
+    grade_row,
     grade_without_judge,
     parse,
 )
@@ -180,7 +180,7 @@ def test_summary_rates() -> None:
 def test_a_graded_row_is_plain_json() -> None:
     result = grade(CASE, verdict(ClaimVerdict(claim="max", cites=[3], supported_by=[3])))
 
-    row = json.loads(json.dumps(_row(result)))
+    row = json.loads(json.dumps(grade_row(result)))
 
     assert row["details"] == [{"claim": "max", "cites": [3], "supported_by": [3]}]
     assert row["all_backed"] is True
