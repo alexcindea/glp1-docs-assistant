@@ -1,0 +1,55 @@
+{
+  "measured_at": "2026-10-11T11:07:31+00:00",
+  "questions": 31,
+  "candidates": 30,
+  "models": [
+    {
+      "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "revision": "233902d25c44",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "mixedbread-ai/mxbai-rerank-xsmall-v1",
+      "revision": "b5c6e9da73ab",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "BAAI/bge-reranker-base",
+      "revision": "2cfc18c9415c",
+      "licence": "MIT"
+    }
+  ],
+  "results": {
+    "fused (no reranker)": {
+      "recall@5": 0.645,
+      "recall@10": 0.79,
+      "found@5": 19,
+      "ms_median": null,
+      "ms_p95": null
+    },
+    "fused, recall@30 (ceiling)": {
+      "recall@any": 0.871
+    },
+    "cross-encoder/ms-marco-MiniLM-L6-v2": {
+      "recall@5": 0.597,
+      "recall@10": 0.726,
+      "found@5": 18,
+      "ms_median": 773.4,
+      "ms_p95": 801.4
+    },
+    "mixedbread-ai/mxbai-rerank-xsmall-v1": {
+      "recall@5": 0.532,
+      "recall@10": 0.613,
+      "found@5": 16,
+      "ms_median": 51256.2,
+      "ms_p95": 62573.4
+    },
+    "BAAI/bge-reranker-base": {
+      "recall@5": 0.435,
+      "recall@10": 0.613,
+      "found@5": 13,
+      "ms_median": 4306.0,
+      "ms_p95": 4685.4
+    }
+  }
+}

@@ -116,6 +116,7 @@ uv run python evals/label.py             # label the calibration set by hand (re
 uv run python evals/calibrate.py         # judge vs calibration labels: agreement and kappa per half (--reveal-holdout)
 uv run pytest evals                      # eval harness tests + end-to-end smoke test (repo root; needs Docker)
 uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
+uv run python evals/reranker_trial.py    # reranker trial over fused candidates (downloads ~1.3 GB of models; slow on CPU)
 ```
 
 ## Working agreement
