@@ -20,12 +20,20 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, get_args
 
-from answer_metrics import Outcome, Score, score, summarise
-from app.answering import DoneEvent, ErrorEvent, RewritePolicy, SourcesEvent, answer_question
+from answer_metrics import CitedPassage, Outcome, Score, score, summarise
+from app.answering import (
+    Citation,
+    DoneEvent,
+    ErrorEvent,
+    RewritePolicy,
+    SourcesEvent,
+    answer_question,
+)
 from app.config import get_settings
 from app.db import create_engine, create_sessionmaker
 from app.embeddings import Embedder
@@ -43,6 +51,17 @@ RESULTS = Path(__file__).resolve().parent / "results"
 
 def hit(passage: SearchHit) -> Hit:
     return Hit(doc_id=Path(passage.filename).stem, text=passage.chunk.text)
+
+
+def cited(citation: Citation, passage: SearchHit) -> CitedPassage:
+    first, last = citation.page_start, citation.page_end
+    return CitedPassage(
+        n=citation.n,
+        doc_id=Path(citation.filename).stem,
+        pages=str(first) if first == last else f"{first}-{last}",
+        section=" > ".join(citation.section_path),
+        text=passage.chunk.text,
+    )
 
 
 async def ask(
@@ -85,9 +104,7 @@ async def ask(
                 total_ms=event.timings.total_ms,
                 search_query=query,
                 answer=event.answer,
-                citations=tuple(
-                    f"{Path(c.filename).stem} p.{c.page_start}" for c in event.citations
-                ),
+                citations=tuple(cited(c, sources[c.n - 1]) for c in event.citations),
             )
     raise RuntimeError(f"{item.id}: the pipeline ended without done or error")
 
@@ -138,7 +155,7 @@ def row(item: GoldItem, result: Score, outcome: Outcome) -> dict[str, Any]:
         "error": outcome.error,
         "search_query": outcome.search_query,
         "answer": outcome.answer,
-        "citations": list(outcome.citations),
+        "citations": [asdict(c) for c in outcome.citations],
         "cost_usd": outcome.cost_usd,
         "first_token_ms": None if outcome.first_token_ms is None else round(outcome.first_token_ms),
         "total_ms": None if outcome.total_ms is None else round(outcome.total_ms),

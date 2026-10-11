@@ -37,6 +37,17 @@ PASSING: frozenset[Verdict] = frozenset({"cited_gold", "refused"})
 
 
 @dataclass(frozen=True)
+class CitedPassage:
+    """A passage the answer cites, as the judge reads it (evals/judge.py)."""
+
+    n: int  # its number among the sources: the [n] in the answer
+    doc_id: str
+    pages: str  # "4", or "4-5"
+    section: str
+    text: str
+
+
+@dataclass(frozen=True)
 class Outcome:
     """What the pipeline did with one gold question."""
 
@@ -50,7 +61,7 @@ class Outcome:
     total_ms: float | None = None
     search_query: str = ""
     answer: str = ""  # as shown, with [n] markers; "" when refused
-    citations: tuple[str, ...] = ()  # "doc p.N", for reading the results
+    citations: tuple[CitedPassage, ...] = ()
 
 
 @dataclass(frozen=True)
