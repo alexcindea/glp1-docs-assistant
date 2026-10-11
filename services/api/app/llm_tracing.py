@@ -76,7 +76,12 @@ def _record_request(span: Span, provider: str, request: CompletionRequest) -> No
             "openinference.span.kind": "LLM",
             "llm.provider": provider,
             "llm.role": request.role.value,
-            "llm.invocation_parameters": json.dumps({"max_tokens": request.max_tokens}),
+            "llm.invocation_parameters": json.dumps(
+                {
+                    "max_tokens": request.max_tokens,
+                    "output_schema": request.output.name if request.output else None,
+                }
+            ),
             "llm.input_messages.0.message.role": "system",
             "llm.input_messages.0.message.content": request.system,
         }

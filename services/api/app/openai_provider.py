@@ -19,7 +19,7 @@ from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
 
 import openai
-from openai.types.responses import Response, ResponseInputParam
+from openai.types.responses import Response, ResponseInputParam, ResponseTextConfigParam
 from openai.types.responses.response_create_params import PromptCacheOptions
 
 from app.config import Settings
@@ -80,6 +80,7 @@ class OpenAIProvider:
                 reasoning={"effort": role.effort},
                 store=False,
                 prompt_cache_options=NO_CACHE_WRITES,
+                text=_text(request),
             )
         except openai.OpenAIError as error:
             raise _llm_error(error) from error
@@ -96,6 +97,7 @@ class OpenAIProvider:
                 reasoning={"effort": role.effort},
                 store=False,
                 prompt_cache_options=NO_CACHE_WRITES,
+                text=_text(request),
                 stream=True,
             ) as events:
                 async for event in events:
@@ -120,6 +122,20 @@ class OpenAIProvider:
 
 def _input(request: CompletionRequest) -> ResponseInputParam:
     return [{"role": message.role, "content": message.content} for message in request.messages]
+
+
+def _text(request: CompletionRequest) -> ResponseTextConfigParam | openai.Omit:
+    """Structured output when the request asks for it; strict, so the reply parses."""
+    if request.output is None:
+        return openai.omit
+    return {
+        "format": {
+            "type": "json_schema",
+            "name": request.output.name,
+            "schema": request.output.json_schema,
+            "strict": True,
+        }
+    }
 
 
 def _completion(response: Response) -> Completion:

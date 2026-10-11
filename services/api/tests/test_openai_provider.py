@@ -7,8 +7,17 @@ from typing import Any
 import httpx2
 import openai
 import pytest
+from pydantic import BaseModel
 
-from app.llm import CompletionRequest, LLMError, Message, ModelRole, StreamEnd, TextDelta
+from app.llm import (
+    CompletionRequest,
+    LLMError,
+    Message,
+    ModelRole,
+    StreamEnd,
+    TextDelta,
+    output_schema,
+)
 from app.openai_provider import OpenAIProvider, RoleModel
 
 MODELS = {
@@ -94,12 +103,39 @@ async def test_complete_sends_the_roles_model_and_reads_usage() -> None:
     assert body["store"] is False
     assert body["prompt_cache_options"] == {"mode": "explicit"}  # no paid cache writes
     assert "temperature" not in body
+    assert "text" not in body  # free text unless a schema is asked for
     assert completion.text == "2 mg [1]"
     assert completion.model == "gpt-6.1-sol-2026-09-01"
     assert completion.stop_reason == "completed"
     usage = completion.usage
     assert (usage.input_tokens, usage.cached_input_tokens) == (1200, 1000)
     assert (usage.output_tokens, usage.reasoning_tokens) == (50, 20)
+
+
+class Verdict(BaseModel):
+    correct: bool
+    note: str | None = None
+
+
+@pytest.mark.anyio
+async def test_a_schema_request_asks_for_strict_structured_output() -> None:
+    provider, sent = _provider(
+        lambda _: httpx2.Response(200, json=_response('{"correct": true, "note": null}'))
+    )
+    request = _request(ModelRole.JUDGE).model_copy(update={"output": output_schema(Verdict)})
+
+    completion = await provider.complete(request)
+
+    (body,) = sent
+    assert body["text"] == {
+        "format": {
+            "type": "json_schema",
+            "name": "Verdict",
+            "schema": output_schema(Verdict).json_schema,
+            "strict": True,
+        }
+    }
+    assert Verdict.model_validate_json(completion.text) == Verdict(correct=True)
 
 
 @pytest.mark.anyio
@@ -131,6 +167,20 @@ async def test_stream_yields_text_deltas_then_one_end() -> None:
     assert isinstance(events[-1], StreamEnd)
     assert sum(isinstance(e, StreamEnd) for e in events) == 1
     assert events[-1].completion.usage.input_tokens == 1200
+
+
+@pytest.mark.anyio
+async def test_a_streamed_schema_request_asks_for_structured_output_too() -> None:
+    body = _sse({"type": "response.completed", "sequence_number": 1, "response": _response("{}")})
+    provider, sent = _provider(
+        lambda _: httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
+    )
+    request = _request(ModelRole.JUDGE).model_copy(update={"output": output_schema(Verdict)})
+
+    _ = [event async for event in provider.stream(request)]
+
+    assert sent[0]["text"]["format"]["name"] == "Verdict"
+    assert sent[0]["text"]["format"]["strict"] is True
 
 
 @pytest.mark.anyio
