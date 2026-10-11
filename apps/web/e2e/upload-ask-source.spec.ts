@@ -12,7 +12,8 @@ const PDF = resolve(
 test("upload a PDF, ask about it, and see the source passage highlighted on its page", async ({
   page,
 }) => {
-  await page.goto("/documents");
+  // Wait for hydration: a file picked before React attaches its handler is lost.
+  await page.goto("/documents", { waitUntil: "networkidle" });
   await page.locator('input[type="file"]').setInputFiles(PDF);
   // New, or already uploaded (CI's API check uploads it first): stored once either way.
   await expect(page.getByRole("list", { name: "Uploads" })).toContainText(
