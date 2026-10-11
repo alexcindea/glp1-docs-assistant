@@ -40,10 +40,19 @@ attempts), on a laptop CPU with OpenAI's API:
 |---|---|
 | Gold questions handled correctly (answered citing the right passage, or refused when unanswerable) | **78%** (28 of 36) |
 | Answerable questions answered with the right citation | 77%, every miss a retrieval miss: once the model had the passage, it never failed |
+| Answers judged correct by an LLM judge (all 36 questions; refusals scored right only when the documents can't answer) | **81%** (29 of 36) |
+| Claims backed by the passage they cite | 99% (87 of 88); citation marks that back their claim: 84% |
 | Retrieval: right passage in the top 10 (hybrid search) | 79% (vector alone 66%, keyword alone 68%) |
 | Click on a citation → passage highlighted on the page | **533 ms** median (PDF download included) |
 | Question → first words of the answer | 1.9 s median |
 | Cost per question | $0.006 |
+
+The judge (gpt-6-astra) splits each answer into claims, checks each one against the passages
+it cites, and grades the answer against the gold reference. It was checked against 41 labelled
+answers, including 12 deliberately broken copies (a changed number, a swapped citation, a dropped
+sentence, an invented claim). On the 20 it was not tuned on, it agreed with the labels on every
+answer, and it caught every broken copy the labels reject. Judged twice, it gave the same
+verdicts on all 57 saved answers.
 
 Details: [`evals/results/`](evals/results), and the reasoning behind each number in
 [`docs/decisions.md`](docs/decisions.md).
@@ -139,9 +148,10 @@ What would change to run this on AWS, GCP or Azure:
 - About a fifth of answerable questions fail at retrieval: wording mismatches ("dose" against the
   label's "dosage") and long scanned passages. A reranker or query expansion is the next step,
   measured on the gold set.
-- The eval scores evidence, not wording; an LLM judge calibrated against human labels is not done
-  yet. One near miss ("SELECT trial results") is answered honestly as "not in the report" rather
-  than refused, and counts as a failure until the judge exists.
+- The judge's calibration labels were written by Claude, a second model, not by a domain expert,
+  and 20 held-out answers is a small sample: perfect agreement there means "no disagreement found",
+  not "never wrong". Two models can share a blind spot; a regulatory reviewer labelling the same
+  set is the obvious next step.
 - Conversations live in the browser tab (each answer is saved, the conversation isn't); the
   viewer shows one page at a time; English only.
 
