@@ -37,3 +37,36 @@ describe("AnswerText", () => {
     expect(screen.getByText(/the label/)).toBeInTheDocument();
   });
 });
+
+describe("AnswerText chips", () => {
+  it("ignores a model-written citation link to a passage that doesn't exist", () => {
+    renderAnswer("See [this](#cite-99).");
+
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.getByText(/this/)).toBeInTheDocument();
+  });
+
+  it("keeps the same chip element across renders, so focus survives streaming", () => {
+    const onCite = vi.fn();
+    const { rerender } = render(
+      <AnswerText
+        text="2 mg [1]"
+        passageCount={3}
+        selected={null}
+        onCite={onCite}
+      />,
+    );
+    const chip = screen.getByRole("button", { name: "Show source 1" });
+
+    rerender(
+      <AnswerText
+        text="2 mg [1]"
+        passageCount={3}
+        selected={1}
+        onCite={() => onCite()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Show source 1" })).toBe(chip);
+  });
+});

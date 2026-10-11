@@ -7,6 +7,7 @@ import type { DocumentOut } from "@/lib/documents";
 import { DocumentFilter } from "./document-filter";
 import { QuestionForm } from "./question-form";
 import { SourcePanel, type PanelState } from "./source-panel";
+import { SourceSheet, useMediaQuery } from "./source-sheet";
 import { TurnView } from "./turn-view";
 import { useChat } from "./use-chat";
 
@@ -26,6 +27,8 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
   const [filter, setFilter] = useState<string[]>(initialFilter);
   const [panel, setPanel] = useState<PanelState | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
+  // What opened the panel, to give focus back to when the phone sheet closes.
+  const [opener, setOpener] = useState<HTMLElement | null>(null);
 
   const lastText = turns.at(-1)?.text.length ?? 0;
   useEffect(() => {
@@ -35,8 +38,16 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
   const panelTurn = panel
     ? turns.find((t) => t.id === panel.turnId)
     : undefined;
+  const wide = useMediaQuery("(min-width: 64rem)"); // Tailwind's lg: the side panel shows
+  const sheetOpen = Boolean(panel && panelTurn && !wide);
+
+  function rememberOpener() {
+    if (document.activeElement instanceof HTMLElement)
+      setOpener(document.activeElement);
+  }
 
   function openSource(turnId: string, n: number) {
+    rememberOpener();
     // Timed from here to the highlight on screen (see the PDF viewer).
     performance.clearMarks("citation-click");
     performance.mark("citation-click");
@@ -44,6 +55,7 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
   }
 
   function openEvidence(turnId: string) {
+    rememberOpener();
     setPanel((current) => ({
       turnId,
       view: "evidence",
@@ -64,7 +76,11 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
 
   return (
     <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <section className="flex min-h-0 flex-col" aria-label="Conversation">
+      <section
+        className="flex min-h-0 flex-col"
+        aria-label="Conversation"
+        inert={sheetOpen} // the sheet covers it: keep focus out
+      >
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-2xl space-y-8 px-4 py-6">
             {documentsError && (
@@ -119,14 +135,10 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
       >
         {side}
       </aside>
-      {panel && panelTurn && (
-        <div
-          className="bg-background fixed inset-0 z-40 flex flex-col lg:hidden"
-          role="dialog"
-          aria-label="Sources"
-        >
+      {sheetOpen && (
+        <SourceSheet onClose={() => setPanel(null)} opener={opener}>
           {side}
-        </div>
+        </SourceSheet>
       )}
     </div>
   );
