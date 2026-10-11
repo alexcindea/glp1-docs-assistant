@@ -91,5 +91,5 @@ export function whyFound(ranks: Schemas["PathRanks"]): string {
     ranks.bm25 !== null ? `keyword search #${ranks.bm25}` : null,
   ].filter(Boolean);
   if (parts.length === 2) return `Found by ${parts.join(" and ")}`;
-  return `Found only by ${parts[0] ?? "neither search"}`;
+  return parts[0] ? `Found only by ${parts[0]}` : "Search ranks not recorded";
 }

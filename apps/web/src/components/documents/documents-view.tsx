@@ -46,9 +46,16 @@ export function DocumentsView({ initial, error }: Props) {
 
   useEffect(() => {
     if (!working) return;
+    let polling = false; // one request at a time: a slow one isn't overtaken
     const timer = setInterval(async () => {
-      const latest = await listDocuments();
-      if (latest) setDocuments(latest);
+      if (polling) return;
+      polling = true;
+      try {
+        const latest = await listDocuments();
+        if (latest) setDocuments(latest);
+      } finally {
+        polling = false;
+      }
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [working]);
@@ -100,7 +107,7 @@ export function DocumentsView({ initial, error }: Props) {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors",
+          "focus-within:ring-ring/50 flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors focus-within:ring-2",
           dragging
             ? "border-primary bg-primary/5"
             : "hover:border-primary/50 hover:bg-muted/40",

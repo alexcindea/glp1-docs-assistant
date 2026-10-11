@@ -54,7 +54,12 @@ export async function* streamAnswer(
 
 /** An event, or null for a kind this version doesn't know (newer API: skip it). */
 export function parseEvent(data: string): AnswerEvent | null {
-  const value: unknown = JSON.parse(data);
+  let value: unknown;
+  try {
+    value = JSON.parse(data);
+  } catch {
+    return null; // garbled data is skipped; a stream that then ends early says so
+  }
   if (typeof value !== "object" || value === null || !("kind" in value))
     return null;
   return typeof value.kind === "string" && KINDS.has(value.kind)

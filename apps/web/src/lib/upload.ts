@@ -1,5 +1,8 @@
 import type { Schemas } from "@/lib/api/client";
 
+// 100 MB (the API's limit) at a slow 1 Mbit/s is under 14 minutes.
+const UPLOAD_TIMEOUT_MS = 15 * 60_000;
+
 export type UploadResult =
   | { kind: "queued"; document: Schemas["DocumentOut"] } // new: ingest queued
   | { kind: "existing"; document: Schemas["DocumentOut"] } // same bytes uploaded before
@@ -25,14 +28,27 @@ export function uploadDocument(
     request.addEventListener("load", () =>
       resolve(uploadResult(request.status, request.responseText)),
     );
-    request.addEventListener("error", () =>
-      resolve({
-        kind: "rejected",
-        code: "network",
-        message:
-          "The upload was interrupted. Check the connection and try again.",
-      }),
+    const interrupted = (code: string, message: string) => () =>
+      resolve({ kind: "rejected", code, message });
+    request.addEventListener(
+      "error",
+      interrupted(
+        "network",
+        "The upload was interrupted. Check the connection and try again.",
+      ),
     );
+    request.addEventListener(
+      "abort",
+      interrupted("aborted", "The upload was cancelled."),
+    );
+    request.addEventListener(
+      "timeout",
+      interrupted(
+        "timeout",
+        "The upload took too long. Try again on a faster connection.",
+      ),
+    );
+    request.timeout = UPLOAD_TIMEOUT_MS;
     const form = new FormData();
     form.append("file", file);
     request.send(form);

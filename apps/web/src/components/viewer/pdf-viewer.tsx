@@ -27,6 +27,9 @@ const ZOOMS = [0.75, 1, 1.25, 1.5, 2];
 const PDF_OPTIONS = {
   wasmUrl: "/pdfjs/wasm/",
   standardFontDataUrl: "/pdfjs/standard_fonts/",
+  // PDFs are uploads, so untrusted: never compile code from one (pdf.js uses
+  // eval for some fonts' speed-up only).
+  isEvalSupported: false,
 };
 
 type Props = {

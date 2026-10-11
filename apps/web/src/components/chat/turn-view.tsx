@@ -175,15 +175,20 @@ function RefusalCard({
             Closest passages
           </p>
           <ul className="space-y-1">
-            {refusal.closest.map((hit, i) => (
-              <li key={hit.chunk.id}>
-                <ClosestPassage
-                  hit={hit}
-                  active={selected === i + 1}
-                  onClick={() => onSelect(i + 1)}
-                />
-              </li>
-            ))}
+            {refusal.closest.map((hit) => {
+              // Its number among the sources, found by chunk, not by position.
+              const n =
+                turn.sources.findIndex((s) => s.chunk.id === hit.chunk.id) + 1;
+              return (
+                <li key={hit.chunk.id}>
+                  <ClosestPassage
+                    hit={hit}
+                    active={n > 0 && selected === n}
+                    onClick={() => n > 0 && onSelect(n)}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

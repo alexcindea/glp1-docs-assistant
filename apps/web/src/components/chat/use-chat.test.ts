@@ -122,3 +122,52 @@ describe("useChat", () => {
     expect(result.current.busy).toBe(false);
   });
 });
+
+describe("useChat, back to back", () => {
+  it("takes a question asked right after an answer ended, while its stream still closes", async () => {
+    const encoderLocal = new TextEncoder();
+    const sent: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        const { question } = JSON.parse(String(init.body)) as {
+          question: string;
+        };
+        sent.push(question);
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(
+              encoderLocal.encode(
+                `data: ${JSON.stringify({ kind: "sources", query: question, passages: [] })}\n\n` +
+                  `data: ${JSON.stringify(done(`${question} [1]`))}\n\n`,
+              ),
+            );
+            // The first stream stays open after its final event; the second closes.
+            if (sent.length > 1) controller.close();
+            init.signal?.addEventListener("abort", () =>
+              controller.error(new Error("aborted")),
+            );
+          },
+        });
+        return new Response(stream, {
+          headers: { "content-type": "text/event-stream" },
+        });
+      }),
+    );
+    const { result } = renderHook(() => useChat());
+
+    act(() => {
+      void result.current.ask("first", []);
+    });
+    await waitFor(() =>
+      expect(result.current.turns[0]?.status).toBe("answered"),
+    );
+    await act(() => result.current.ask("second", []));
+
+    expect(sent).toEqual(["first", "second"]);
+    expect(result.current.turns.map((t) => t.status)).toEqual([
+      "answered",
+      "answered",
+    ]);
+  });
+});

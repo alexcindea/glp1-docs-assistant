@@ -33,7 +33,10 @@ export function useChat() {
 
   const ask = useCallback(
     async (question: string, documentIds: string[]) => {
-      if (running.current) return; // one question at a time
+      if (busy) return; // one question at a time
+      // The last answer can have ended (its final event arrived) while its
+      // stream is still closing: let it go rather than drop the new question.
+      running.current?.abort();
       const id = crypto.randomUUID();
       const abort = new AbortController();
       running.current = abort;
@@ -62,10 +65,10 @@ export function useChat() {
           );
         else update((t) => endTurn(t, OFFLINE));
       } finally {
-        running.current = null;
+        if (running.current === abort) running.current = null; // not a newer run's
       }
     },
-    [turns],
+    [busy, turns],
   );
 
   const stop = useCallback(() => running.current?.abort(), []);

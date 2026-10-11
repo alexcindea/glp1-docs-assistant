@@ -31,8 +31,10 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
   const [opener, setOpener] = useState<HTMLElement | null>(null);
 
   const lastText = turns.at(-1)?.text.length ?? 0;
+  // Follow the answer as it streams, unless the reader has scrolled up to read.
+  const following = useRef(true);
   useEffect(() => {
-    bottom.current?.scrollIntoView({ block: "end" });
+    if (following.current) bottom.current?.scrollIntoView({ block: "end" });
   }, [turns.length, lastText]);
 
   const panelTurn = panel
@@ -81,7 +83,14 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
         aria-label="Conversation"
         inert={sheetOpen} // the sheet covers it: keep focus out
       >
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto"
+          onScroll={(e) => {
+            const el = e.currentTarget; // following while within 80 px of the end
+            following.current =
+              el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+          }}
+        >
           <div className="mx-auto w-full max-w-2xl space-y-8 px-4 py-6">
             {documentsError && (
               <p
@@ -117,7 +126,10 @@ export function ChatApp({ documents, documentsError, initialFilter }: Props) {
         <div className="mx-auto w-full max-w-2xl px-4 pb-4">
           <QuestionForm
             busy={busy}
-            onAsk={(question) => void ask(question, filter)}
+            onAsk={(question) => {
+              following.current = true; // a new question: follow its answer
+              void ask(question, filter);
+            }}
             onStop={stop}
             filter={
               <DocumentFilter
