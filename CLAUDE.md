@@ -114,7 +114,7 @@ uv run python evals/judge.py             # LLM judge over saved answers: correct
 uv run python evals/calibration.py       # build the calibration set once (refuses if labels exist)
 uv run python evals/label.py             # label the calibration set by hand (resumable)
 uv run python evals/calibrate.py         # judge vs calibration labels: agreement and kappa per half (--reveal-holdout)
-uv run pytest evals                      # eval harness tests (from the repo root)
+uv run pytest evals                      # eval harness tests + end-to-end smoke test (repo root; needs Docker)
 uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
 ```
 

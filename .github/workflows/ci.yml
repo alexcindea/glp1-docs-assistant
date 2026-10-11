@@ -44,7 +44,7 @@ jobs:
           key: models-${{ hashFiles('uv.lock', 'services/api/app/embedding_models.py') }}
       # Builds services/db and runs the database tests against it (testcontainers).
       - run: uv run pytest
-      # The eval harness's own tests (recall metric, gold loader); from the repo root.
+      # The eval harness tests and its end-to-end smoke test (fake models); from the repo root.
       - run: uv run pytest
         working-directory: .
 
