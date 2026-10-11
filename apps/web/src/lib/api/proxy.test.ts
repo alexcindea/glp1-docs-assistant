@@ -111,6 +111,62 @@ describe("proxyToApi", () => {
     expect(calls).toHaveLength(0);
   });
 
+  it("refuses dot segments that would step outside the allowed routes", async () => {
+    const { calls, fetchImpl } = upstream(Response.json({}));
+
+    const response = await proxyToApi(
+      new Request("http://web.test/api/documents/../openapi.json"),
+      ["documents", "..", "openapi.json"],
+      API,
+      fetchImpl,
+    );
+
+    expect(response.status).toBe(404);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("refuses changes requested by another site, but not reads or same-site posts", async () => {
+    const post = (headers: Record<string, string>) =>
+      new Request("http://web.test/api/documents", {
+        method: "POST",
+        body: "x",
+        headers,
+      });
+    const { calls, fetchImpl } = upstream(new Response(null, { status: 202 }));
+
+    const crossSite = await proxyToApi(
+      post({ "sec-fetch-site": "cross-site" }),
+      ["documents"],
+      API,
+      fetchImpl,
+    );
+    const otherOrigin = await proxyToApi(
+      post({ origin: "https://evil.test", host: "web.test" }),
+      ["documents"],
+      API,
+      fetchImpl,
+    );
+    const sameSite = await proxyToApi(
+      post({ "sec-fetch-site": "same-origin" }),
+      ["documents"],
+      API,
+      fetchImpl,
+    );
+    const crossSiteRead = await proxyToApi(
+      new Request("http://web.test/api/documents", {
+        headers: { "sec-fetch-site": "cross-site" },
+      }),
+      ["documents"],
+      API,
+      fetchImpl,
+    );
+
+    expect([crossSite.status, otherOrigin.status]).toEqual([403, 403]);
+    expect(await crossSite.json()).toMatchObject({ code: "cross_site" });
+    expect([sameSite.status, crossSiteRead.status]).toEqual([202, 202]);
+    expect(calls).toHaveLength(2);
+  });
+
   it("reports an unreachable API as a typed 502", async () => {
     const failing = (async () => {
       throw new TypeError("fetch failed");

@@ -24,6 +24,10 @@ const HOP_BY_HOP = [
  *   answer (and its model call) in the API.
  * - Event streams get `no-transform`, so the server's gzip doesn't hold them
  *   back to compress them in bulk.
+ * - Only the API's public routes are reachable, and no path segment may be
+ *   "." or "..", which would step out of them.
+ * - Requests that change something (uploads, questions, feedback) must come
+ *   from this site: another site open in the same browser can't post here.
  */
 export async function proxyToApi(
   request: Request,
@@ -32,10 +36,23 @@ export async function proxyToApi(
   fetchImpl: typeof fetch = fetch,
 ): Promise<Response> {
   const [root] = path;
-  if (root === undefined || !ALLOWED_ROOTS.has(root)) {
+  const dotSegment = path.some(
+    (segment) => segment === "." || segment === "..",
+  );
+  if (root === undefined || !ALLOWED_ROOTS.has(root) || dotSegment) {
     return Response.json(
       { code: "not_found", message: "No such API route.", details: [] },
       { status: 404 },
+    );
+  }
+  if (fromAnotherSite(request)) {
+    return Response.json(
+      {
+        code: "cross_site",
+        message: "Requests that change data must come from this app.",
+        details: [],
+      },
+      { status: 403 },
     );
   }
   const target = new URL(
@@ -88,4 +105,24 @@ export async function proxyToApi(
     statusText: upstream.statusText,
     headers: responseHeaders,
   });
+}
+
+/**
+ * A browser request made by another site's page. Browsers say so in
+ * Sec-Fetch-Site; older ones only send Origin. Reads are allowed (nothing
+ * changes, and the browser keeps the response from the other site); requests
+ * without either header come from tools like curl, not from a web page.
+ */
+function fromAnotherSite(request: Request): boolean {
+  if (request.method === "GET" || request.method === "HEAD") return false;
+  const site = request.headers.get("sec-fetch-site");
+  if (site) return site !== "same-origin" && site !== "none";
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  const host = request.headers.get("host") ?? new URL(request.url).host;
+  try {
+    return new URL(origin).host !== host;
+  } catch {
+    return true; // "null" or garbage: not this site
+  }
 }
