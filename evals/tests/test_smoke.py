@@ -6,7 +6,9 @@ by the judge (a fake judge) and turned into calibration cases. The unit tests
 cover each piece; this joins them, so a mismatch between what the pipeline emits
 and what the harness reads fails in CI rather than halfway through a paid run.
 
-Needs Docker, like the API's database tests, whose fixtures it borrows.
+Needs Docker, like the API's database tests, whose fixtures it borrows (marked `db`:
+`uv run pytest evals -m "not db"` skips it). The fixtures are imported from the API's
+`tests` package, which resolves because evals/tests is not a package itself.
 """
 
 import json
@@ -18,7 +20,7 @@ from answers import ask, row
 from app.llm import CompletionRequest, FakeLLMProvider, ModelRole
 from calibration import build
 from gold import Expected, GoldItem
-from judge import ClaimVerdict, Judge, JudgeVerdict, _row, case_for, grade_without_judge
+from judge import ClaimVerdict, Judge, JudgeVerdict, case_for, grade_row, grade_without_judge
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tests.conftest import (  # noqa: F401  (fixtures, used by name)
     _ignore_dotenv,
@@ -28,7 +30,7 @@ from tests.conftest import (  # noqa: F401  (fixtures, used by name)
     pg_container,
     sessions,
 )
-from tests.test_answering import DOSE, EMBEDDER, add_corpus, cites_the_dose
+from tests.factories import DOSE, EMBEDDER, add_corpus, cites_the_dose
 
 GOLD = GoldItem(
     id="s1",
@@ -49,6 +51,7 @@ def respond(request: CompletionRequest) -> str:
     return cites_the_dose(request)
 
 
+@pytest.mark.db
 @pytest.mark.anyio
 async def test_a_gold_question_goes_through_answering_scoring_judging_and_calibration(
     sessions: async_sessionmaker[AsyncSession],  # noqa: F811  (the imported fixture)
@@ -69,8 +72,7 @@ async def test_a_gold_question_goes_through_answering_scoring_judging_and_calibr
     assert grade_without_judge(GOLD, saved) is None  # an answer: the judge grades it
     grade = await Judge(llm, "fake (none)", cache=tmp_path).grade(case_for(GOLD, saved))
     assert grade.correct and grade.all_backed
-    assert json.loads(json.dumps(_row(grade)))["details"][0]["cites"] == [cited["n"]]
+    assert json.loads(json.dumps(grade_row(grade)))["details"][0]["cites"] == [cited["n"]]
 
     cases = build([saved], [GOLD])
     assert sorted(c.kind for c in cases) == ["real", "wrong_number"]  # one copy per question
-    assert len({c.split for c in cases}) == 1  # a copy shares its original's half

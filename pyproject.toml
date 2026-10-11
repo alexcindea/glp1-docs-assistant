@@ -38,3 +38,4 @@ dev = [
 testpaths = ["evals/tests"]
 pythonpath = ["evals", "services/api"]  # services/api: the smoke test borrows its DB fixtures
 addopts = "-ra --strict-markers"
+markers = ["db: starts a real Postgres in Docker via testcontainers (the smoke test)"]
