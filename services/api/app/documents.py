@@ -281,7 +281,7 @@ async def get_file(
     document = await _get_document(session, document_id)
     etag = f'"{document.sha256}"'
     headers = {"ETag": etag, "Cache-Control": "private, max-age=31536000, immutable"}
-    if if_none_match == etag:
+    if if_none_match and _matches(if_none_match, etag):
         return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
     content = await session.scalar(
         select(DocumentFile.content).where(DocumentFile.document_id == document_id)
@@ -328,3 +328,9 @@ async def rechunk_document(
             "This document is already being processed. Try again when it finishes.",
         ) from None
     return _out(document, job)
+
+
+def _matches(if_none_match: str, etag: str) -> bool:
+    """If-None-Match holds "*" or a list of tags, possibly weak (W/"..."): any match counts."""
+    tags = [tag.strip().removeprefix("W/") for tag in if_none_match.split(",")]
+    return "*" in tags or etag in tags

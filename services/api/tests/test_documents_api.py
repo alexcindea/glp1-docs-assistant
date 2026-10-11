@@ -209,3 +209,14 @@ def test_the_file_of_an_unknown_document_is_a_typed_404(client: TestClient) -> N
 
     assert response.status_code == 404
     assert response.json()["code"] == "not_found"
+
+
+@pytest.mark.parametrize("form", ["weak", "listed", "any"])
+def test_a_weak_or_listed_etag_also_gets_a_304(client: TestClient, form: str) -> None:
+    document_id = _upload(client, FIXTURE_PDF.read_bytes())["id"]
+    etag = client.get(f"/documents/{document_id}/file").headers["etag"]
+    header = {"weak": f"W/{etag}", "listed": f'"other", {etag}', "any": "*"}[form]
+
+    response = client.get(f"/documents/{document_id}/file", headers={"If-None-Match": header})
+
+    assert response.status_code == 304
