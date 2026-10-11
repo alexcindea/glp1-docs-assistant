@@ -1,0 +1,141 @@
+{
+  "measured_at": "2026-10-11T10:01:00+00:00",
+  "judge": "gpt-6-astra (medium)",
+  "prompt_version": "judge-v1",
+  "agreement": {
+    "tune": {
+      "correct": {
+        "n": 21,
+        "both_yes": 14,
+        "both_no": 5,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 2,
+        "rate": 0.905,
+        "kappa": 0.769
+      },
+      "backed": {
+        "n": 21,
+        "both_yes": 17,
+        "both_no": 3,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 1,
+        "rate": 0.952,
+        "kappa": 0.829
+      }
+    },
+    "holdout": {
+      "correct": {
+        "n": 20,
+        "both_yes": 11,
+        "both_no": 5,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 4,
+        "rate": 0.8,
+        "kappa": 0.579
+      },
+      "backed": {
+        "n": 20,
+        "both_yes": 15,
+        "both_no": 5,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 0,
+        "rate": 1.0,
+        "kappa": 1.0
+      }
+    },
+    "all": {
+      "correct": {
+        "n": 41,
+        "both_yes": 25,
+        "both_no": 10,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 6,
+        "rate": 0.854,
+        "kappa": 0.67
+      },
+      "backed": {
+        "n": 41,
+        "both_yes": 32,
+        "both_no": 8,
+        "judge_yes_label_no": 0,
+        "judge_no_label_yes": 1,
+        "rate": 0.976,
+        "kappa": 0.926
+      }
+    }
+  },
+  "broken_copies": {
+    "tune": {
+      "broken": 6,
+      "rejected_by_label": 4,
+      "caught": 4
+    },
+    "holdout": {
+      "broken": 6,
+      "rejected_by_label": 5,
+      "caught": 5
+    },
+    "all": {
+      "broken": 12,
+      "rejected_by_label": 9,
+      "caught": 9
+    }
+  },
+  "disagreements": [
+    {
+      "case": 9,
+      "id": "q027",
+      "split": "tune",
+      "criteria": [
+        "backed"
+      ],
+      "judge": {
+        "correct": false,
+        "backed": false
+      },
+      "label": {
+        "correct": false,
+        "backed": true
+      },
+      "judge_reason": "The answer omits the Trulicity Summary Review (2014), a key review named in the reference answer. Its additional Mounjaro review discussion is supported, but the opening claim that the passages identify three reviews is unsupported and contradicts its later count of two.",
+      "label_note": "Claude: misses the Trulicity review; 'three reviews' vs two is about the passages, not a document claim"
+    },
+    {
+      "case": 10,
+      "id": "q021",
+      "split": "tune",
+      "criteria": [
+        "correct"
+      ],
+      "judge": {
+        "correct": false,
+        "backed": true
+      },
+      "label": {
+        "correct": true,
+        "backed": true
+      },
+      "judge_reason": "The answer correctly identifies rodent C-cell neoplasms as the source of disagreement, and its factual claims are supported. However, it omits key reference facts: C-cell hyperplasia and tumors occurred at clinically relevant doses, raising concern about human medullary thyroid cancer, while efficacy was not in question.",
+      "label_note": "Claude: gives the core reason (rodent C-cell tumours); no MTC or efficacy detail"
+    },
+    {
+      "case": 12,
+      "id": "q012",
+      "split": "tune",
+      "criteria": [
+        "correct"
+      ],
+      "judge": {
+        "correct": false,
+        "backed": true
+      },
+      "label": {
+        "correct": true,
+        "backed": true
+      },
+      "judge_reason": "The answer correctly gives the placebo-adjusted weight reduction and 72-week duration, but omits the reference answer's key fact that 91% of patients at 15 mg achieved at least 5% weight loss. Its stated claim is supported by passage 2.",
+      "label_note": "Claude: omits the 91% reaching 5%: secondary to 'how much weight'"
+    }
+  ],
+  "holdout_revealed": false
+}

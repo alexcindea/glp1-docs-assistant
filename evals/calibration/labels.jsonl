@@ -1,0 +1,41 @@
+{"id":"q017","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q010~added_claim","correct":false,"backed":false,"note":"Claude: states a false fact (approval withdrawn in 2019) that no passage backs"}
+{"id":"q001","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q001~added_claim","correct":false,"backed":false,"note":"Claude: adds a false storage claim (room temperature for two years) the passage doesn't make"}
+{"id":"q018","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q015","correct":false,"backed":true,"note":"Claude: gives 38 completed trials instead of the five confirmatory trials"}
+{"id":"q005","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q014","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q027","correct":false,"backed":true,"note":"Claude: misses the Trulicity review; 'three reviews' vs two is about the passages, not a document claim"}
+{"id":"q021","correct":true,"backed":true,"note":"Claude: gives the core reason (rodent C-cell tumours); no MTC or efficacy detail"}
+{"id":"q024~swapped_citation","correct":true,"backed":false,"note":"Claude: Wegovy bullet cites [5], a Zepbound passage; trial durations not counted as key"}
+{"id":"q012","correct":true,"backed":true,"note":"Claude: omits the 91% reaching 5%: secondary to 'how much weight'"}
+{"id":"q008","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q008~swapped_citation","correct":true,"backed":false,"note":"Claude: 'non-oral contraceptives not affected' cites [2][1]; neither says it"}
+{"id":"q030","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q002","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q025~dropped_fact","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q026","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q013","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q007","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q023","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q025","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q033","correct":true,"backed":true,"note":"Claude: says the documents give no SELECT results"}
+{"id":"q033~wrong_number","correct":false,"backed":false,"note":"Claude: says 3.4 mg; the passage says 2.4 mg"}
+{"id":"q006","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q024","correct":true,"backed":true,"note":"Claude: omits trial durations: not key to comparing weight loss"}
+{"id":"q006~wrong_number","correct":false,"backed":false,"note":"Claude: 10 days instead of 5"}
+{"id":"q026~wrong_number","correct":false,"backed":false,"note":"Claude: 120 minutes instead of 60"}
+{"id":"q028~swapped_citation","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q030~added_claim","correct":false,"backed":false,"note":"Claude: invented claim about patients over 65"}
+{"id":"q019","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q010","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q029","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q020","correct":true,"backed":true,"note":"Claude: 'action: approval' is in the reference but not asked by the question"}
+{"id":"q009","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q003","correct":false,"backed":true,"note":"Claude: doesn't give the 5 mcg start or the 60-minute timing"}
+{"id":"q016","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q004","correct":true,"backed":true,"note":"Claude: omits 'discard even if drug remains', implied by the 30-day limit"}
+{"id":"q028","correct":true,"backed":true,"note":"Claude: clear case"}
+{"id":"q021~dropped_fact","correct":false,"backed":true,"note":"Claude: drops the reason for the disagreement (C-cell tumours)"}
+{"id":"q017~dropped_fact","correct":true,"backed":true,"note":"Claude: 'still ongoing' answers it without the explicit 'No'"}

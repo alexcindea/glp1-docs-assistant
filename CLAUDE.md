@@ -113,6 +113,7 @@ uv run python evals/answers.py           # answer eval: real model, both rewrite
 uv run python evals/judge.py             # LLM judge over saved answers: correctness, citation support (~$1.50)
 uv run python evals/calibration.py       # build the calibration set once (refuses if labels exist)
 uv run python evals/label.py             # label the calibration set by hand (resumable)
+uv run python evals/calibrate.py         # judge vs calibration labels: agreement and kappa per half (--reveal-holdout)
 uv run pytest evals                      # eval harness tests (from the repo root)
 uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
 ```
