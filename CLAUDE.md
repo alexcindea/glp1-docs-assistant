@@ -10,7 +10,12 @@ Demo corpus: the GLP-1 dossier, public FDA and EMA documents on the GLP-1 drug f
 to today (labels, approval letters, summary reviews, EMA assessment reports, a few scanned older
 reviews). The engine itself is generic; nothing in the code may assume this corpus.
 
-The project brief is in `ASSIGNMENT.md`. Read it once. Two consequences:
+The project began as a take-home brief: build a working "chat with your docs" assistant (RAG over
+a document collection), judged as much on how it is built as on what it does: a stack you could
+take to production, clean and observable code, UI/UX, and how AI tools were used. The README must
+cover setup, architecture, what productionising on a hyperscaler would take, the RAG/LLM
+decisions, key technical decisions, engineering standards, AI usage, and what we'd do with more
+time. Two consequences:
 - A solid, well-engineered basic solution beats an over-engineered one. Finish and polish the
   core before touching any extension.
 - The commit history and the README are part of the deliverable. Small commits, clear messages,

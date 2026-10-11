@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Start phase $ARGUMENTS of the build.
 
-1. Read CLAUDE.md, ASSIGNMENT.md, docs/decisions.md and the phase list. If the
+1. Read CLAUDE.md, docs/decisions.md and the phase list. If the
    requested phase is not the next one, say so and stop.
 2. Explore only the code relevant to this phase. Do not write or edit any file yet.
 3. Reply with a plan in exactly this shape:
