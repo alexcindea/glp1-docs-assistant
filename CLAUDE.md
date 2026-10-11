@@ -111,6 +111,8 @@ uvx pre-commit run --all-files
 uv run python evals/run.py               # retrieval eval: recall@5/@10 per path (needs the ingested corpus)
 uv run python evals/answers.py           # answer eval: real model, both rewrite settings (~45 cents, ~7 min)
 uv run python evals/judge.py             # LLM judge over saved answers: correctness, citation support (~$1.50)
+uv run python evals/calibration.py       # build the calibration set once (refuses if labels exist)
+uv run python evals/label.py             # label the calibration set by hand (resumable)
 uv run pytest evals                      # eval harness tests (from the repo root)
 uv run python evals/embedder_bakeoff.py  # embedding model comparison (slow on CPU; caches in evals/.cache)
 ```
