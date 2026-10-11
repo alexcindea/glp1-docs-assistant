@@ -174,4 +174,4 @@ advice. Compare mode is a stretch goal — do not start it before the core is fi
 7. Evals and hardening: judge calibrated against my labels, citation and refusal metrics, tests
 8. Write-up: README (Claude writes and maintains it: documents the project, no authorship statements), screenshots, video, demo deploy
 
-**Current phase: 6**
+**Current phase: 7**
