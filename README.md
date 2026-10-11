@@ -145,13 +145,13 @@ What would change to run this on AWS, GCP or Azure:
 - Conversations live in the browser tab (each answer is saved, the conversation isn't); the
   viewer shows one page at a time; English only.
 
-## How it was built
+## Project docs
 
-Built with [Claude Code](https://claude.com/claude-code): Claude wrote the code, tests and first
-drafts of the docs; the author set the rules and the phased plan in [`CLAUDE.md`](CLAUDE.md), made
-the decisions, and reviewed every step. Review subagents, a lint hook and real-browser checks
-caught a good share of Claude's mistakes along the way; the log of what was proposed, rejected
-and corrected is in [`docs/ai-usage.md`](docs/ai-usage.md).
+- [`docs/decisions.md`](docs/decisions.md): every non-obvious technical choice, the options
+  rejected, and the measurements behind it.
+- [`docs/ai-usage.md`](docs/ai-usage.md): the AI-assisted development log.
+- [`CLAUDE.md`](CLAUDE.md): project rules, stack, commands and build phases.
+- [`evals/`](evals): the gold set, the eval harnesses and their results.
 
 ## Sources and licence
 
