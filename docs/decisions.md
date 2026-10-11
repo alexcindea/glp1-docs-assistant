@@ -17,6 +17,22 @@ Template:
 
 ---
 
+## 2026-10-11 — Viewer assets: pdf.js's decoders yes, its GPL fonts no
+
+**Context:** Scanned pages need pdf.js's image decoders, which `pdfjs-dist` ships alongside
+fonts; the files are served from the web image, so their licences fall under the no-copyleft
+rule.
+**Options:** copy all of `pdfjs-dist`'s runtime folders · copy only the permissively licensed
+files · record an exception for the Liberation fonts (GPLv2 with a font-embedding exception)
+**Decision:** Copy the decoders (PDFium's JBIG2, BSD-3, in a pdf.js wrapper, Apache-2.0;
+OpenJPEG, BSD-2; qcms, MIT) and PDFium's Foxit standard fonts (BSD). Leave out the Liberation
+fonts and quickjs (code execution inside PDFs, unused, no licence file shipped).
+**Why:** The rule has no exceptions for convenience, and pdf.js falls back to another font
+without Liberation. The first version copied the whole fonts folder; the phase 6 review caught
+it.
+**Consequences:** A PDF that relies on the Liberation substitutes renders in a different
+font. Upgrading `pdfjs-dist` means rechecking the licences of what the copy step picks up.
+
 ## 2026-10-10 — PDF viewer: one page at a time, highlights drawn from stored boxes
 
 **Context:** Every citation must open its page with the passage highlighted, on text pages,
@@ -53,7 +69,10 @@ and `next start` gzips responses, which would hold an event stream back until th
 Checked on the production server: no compression on the stream, deltas arriving from 1.8 s
 to the end at 3.9 s.
 **Consequences:** One extra hop (a few ms). Uploads pass through Next too, so a proxy in
-front needs the same size limit as the API.
+front needs the same size limit as the API. After review, the proxy also refuses "." and ".."
+path segments, and requests that change data (uploads, questions, feedback) unless the browser
+marks them same-origin: otherwise another site open in the same browser could post to
+`localhost:3000`. Reads and tools like curl are unaffected.
 
 ## 2026-10-10 — Chat state lives in the page; the stream is read by our own SSE reader
 

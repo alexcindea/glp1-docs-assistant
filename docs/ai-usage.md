@@ -24,10 +24,23 @@ Running log, newest first. Becomes the "How you used AI tools" section of the RE
 
 Template: `YYYY-MM-DD · what I asked · what it proposed · what I kept or changed, and why`
 
+- 2026-10-11 · fixing the review's phone-dialog point, Claude found by checking focus in a real
+  browser that its own answer renderer remounted every citation chip on every streamed word
+  (a new component type each render), and that making the page inert took focus away before
+  the dialog could note where it came from · both fixed; jsdom (no `inert`) could not show the
+  second, which is why the browser check mattered.
+- 2026-10-11 · the end-to-end test failed twice, each time right after a code change · Claude
+  first put it down to a slow dev recompile, then found the real cause: the test picked a file
+  before the page had hydrated, so it was lost · the test now waits for the page to settle.
+- 2026-10-10 · reviewer on phase 6 · found that the pdf.js files Claude copied into the web
+  image included GPLv2 fonts (Liberation): Claude had checked the decoders' licences but not
+  the fonts folder's, and summarised them wrongly as "BSD and MIT" · the fonts are left out
+  now. It also found that a stopped answer stayed on screen as unchecked text with live
+  citation chips · stopped answers are now cleared. Both fixed with the review's other points.
 - 2026-10-10 · Claude checked the UI in a real browser (Playwright screenshots) rather than
   trusting tests · it found that scanned review pages rendered blank in the PDF viewer (pdf.js
-  6 needs separate decoders for JBIG2 images) · the decoders are now served with the app;
-  their licences were checked (BSD and MIT) before shipping them.
+  6 needs separate decoders for JBIG2 images) · the decoders are now served with the app
+  (PDFium's JBIG2, BSD-3, in a pdf.js wrapper, Apache-2.0; OpenJPEG, BSD-2; qcms, MIT).
 - 2026-10-10 · the same checks found that the web Docker image never copied `public/`, which
   the decoders need, and that the production server gzips responses, which would hold back a
   streamed answer · both fixed and checked on a production build, not only in dev mode.
