@@ -146,8 +146,10 @@ What would change to run this on AWS, GCP or Azure:
 ## Known limitations
 
 - About a fifth of answerable questions fail at retrieval: wording mismatches ("dose" against the
-  label's "dosage") and long scanned passages. A reranker or query expansion is the next step,
-  measured on the gold set.
+  label's "dosage") and long scanned passages. Three off-the-shelf cross-encoder rerankers made it
+  worse (recall@5 0.645 without, 0.60 at best with) and slower on CPU
+  ([`reranker-trial.md`](evals/results/reranker-trial.md)); query expansion or a reranker tuned on
+  regulatory text is what's left to try.
 - The judge's calibration labels were written by Claude, a second model, not by a domain expert,
   and 20 held-out answers is a small sample: perfect agreement there means "no disagreement found",
   not "never wrong". Two models can share a blind spot; a regulatory reviewer labelling the same
